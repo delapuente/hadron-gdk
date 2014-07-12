@@ -1,0 +1,30 @@
+{
+  "name": "hadron",
+  "version": "0.0.1",
+  "authors": [
+    "Salvador de la Puente <salva@unoyunodiez.com>"
+  ],
+  "description": "An extensible Isometric Game Development Kit in HTML5",
+  "main": "gdk.html",
+  "keywords": [
+    "rpg",
+    "isometric",
+    "games",
+    "development",
+    "kit"
+  ],
+  "license": "MIT",
+  "homepage": "http://lodr.github.io/hadron",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "strongforce": "~1.0.4",
+    "requirejs": "~2.1.14",
+    "pixi.js": "GoodBoyDigital/pixi.js#~1.6.0"
+  }
+}
