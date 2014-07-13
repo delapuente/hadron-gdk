@@ -4,9 +4,41 @@
   <head>
     <meta charset="utf-8" />
     <script data-main="src/main.js" src="lib/requirejs/require.js" ></script>
+    <style>
+      html { font-family: sans; font-size: 62.5%; }
+
+      body { font-size: 2rem; }
+
+      canvas {
+        float: left;
+        margin-right: 1rem;
+      }
+
+      input {
+        font-size: 2rem; 
+        padding: 0.5rem;
+      }
+    </style>
   </head>
   <body>
     <div id="canvas-placeholder"></div>
+    <section>
+      <fieldset>
+        <legend>Grid</legend>
+        <label>Size X: 
+          <input id="select-grid-size-x" type="number" step="5" value="50" />
+        </label><br/>
+        <label>Size Z:
+          <input id="select-grid-size-z" type="number" step="5" value="50" />
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Layers</legend>
+        <input id="add-new-layer" accept="image/*" type="file" /> 
+        <ul id="layer-list">
+        </ul>
+      </fieldset>
+    </section>
   </body>
 </html>
 

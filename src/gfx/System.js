@@ -40,6 +40,10 @@ define([
     return newLayer;
   };
 
+  RenderSystem.prototype.add = function (object) {
+    this._activeCamera.addChild(object);
+  };
+
   RenderSystem.prototype.getViewport = function () {
     var width = this._renderer.width;
     var height = this._renderer.height;
@@ -100,6 +104,10 @@ define([
   };
 
   RenderSystem.prototype.Graphics = pixi.Graphics;
+
+  RenderSystem.prototype.Texture = pixi.Texture;
+
+  RenderSystem.prototype.Sprite = pixi.Sprite;
 
   var system;
 
