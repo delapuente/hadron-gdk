@@ -15,6 +15,10 @@ define([
 
     var placeholder = root.querySelector('#canvas-placeholder');
     placeholder.parentNode.replaceChild(this._gfxSystem.view, placeholder);
+    this._gfxSystem
+      .view.addEventListener('mousedown', this._onMouseDown.bind(this));
+    this._gfxSystem
+      .view.addEventListener('mousemove', this._onMouseMove.bind(this));
 
     this._root = root;
     this._model = model;
@@ -32,6 +36,23 @@ define([
     var addNewLayer = root.querySelector('#add-new-layer');
     addNewLayer.addEventListener('change', this._loadImage.bind(this));
     this._model.addEventListener('layerAdded', this._updateLayerList.bind(this));
+  };
+
+  ObjectEditorUI.prototype._onMouseMove = function (evt) {
+    if (this._selectedLayer) {
+      var deltaX = evt.clientX - this._lastPointerCoordinates[0];
+      var deltaY = evt.clientY - this._lastPointerCoordinates[1];
+      this._lastPointerCoordinates = [evt.clientX, evt.clientY];
+      var currentPosition = this._selectedLayer.getPosition();
+      this._selectedLayer.setPosition([
+        currentPosition[0] + deltaX,
+        currentPosition[1] + deltaY
+      ]);
+    }
+  };
+
+  ObjectEditorUI.prototype._onMouseDown = function (evt) {
+    this._lastPointerCoordinates = [evt.clientX, evt.clientY];
   };
 
   ObjectEditorUI.prototype._changeCellSize = function () {
@@ -59,6 +80,12 @@ define([
     layer.render.addEventListener('mouseout', function () {
       li.classList.remove('selected');
     });
+    layer.render.addEventListener('mousedown', function () {
+      this._selectedLayer = layer;
+    }.bind(this));
+    layer.render.addEventListener('mouseup', function () {
+      this._selectedLayer = null;
+    }.bind(this));
     layerList.insertBefore(li, layerList.firstChild);
   };
 
