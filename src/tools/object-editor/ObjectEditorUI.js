@@ -50,9 +50,16 @@ define([
   ObjectEditorUI.prototype._updateLayerList = function (evt) {
     var layerList = this._root.querySelector('#layer-list');
     var li = document.createElement('li');
-    li.dataset.id = evt.layer.id;
-    li.textContent = evt.layer.name;
-    layerList.appendChild(li);
+    var layer = evt.layer;
+    li.dataset.id = layer.id;
+    li.textContent = layer.name;
+    layer.render.addEventListener('mouseover', function () {
+      li.classList.add('selected');
+    });
+    layer.render.addEventListener('mouseout', function () {
+      li.classList.remove('selected');
+    });
+    layerList.insertBefore(li, layerList.firstChild);
   };
 
   ObjectEditorUI.prototype._render = function (isPostCall, alpha) {

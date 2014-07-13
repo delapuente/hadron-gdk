@@ -18,6 +18,14 @@
         font-size: 2rem; 
         padding: 0.5rem;
       }
+
+      #layer-list li {
+        padding: 0.2rem;
+      }
+
+      #layer-list li.selected {
+        border: 0.1rem solid #1AA1EF;
+      }
     </style>
   </head>
   <body>
@@ -35,8 +43,8 @@
       <fieldset>
         <legend>Layers</legend>
         <input id="add-new-layer" accept="image/*" type="file" /> 
-        <ul id="layer-list">
-        </ul>
+        <ol id="layer-list">
+        </ol>
       </fieldset>
     </section>
   </body>
