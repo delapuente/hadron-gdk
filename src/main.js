@@ -16,7 +16,7 @@ define([
   'use strict';
 
 
-  var objectEditor = new ObjectEditor();
+  var objectEditor = new ObjectEditor([50, 50]);
   var ui = new ObjectEditorUI(document, objectEditor);
 
 });

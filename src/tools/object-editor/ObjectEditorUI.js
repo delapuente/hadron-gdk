@@ -8,8 +8,10 @@ define([
   var Loop = strongforce.Loop;
 
   function ObjectEditorUI(root, model) {
-    this._gfxSystem = GfxSystem.getSystem(600, 600);
-    this._gfxSystem.setBgColor(0xBBBBBB);
+    this._gfxSystem = GfxSystem.getSystem();
+    this._gfxSystem.resizeViewport([600, 600]);
+    this._gfxSystem.centerCamera();
+    this._gfxSystem.setBgColor(0xF0F0F0);
 
     var placeholder = root.querySelector('#canvas-placeholder');
     placeholder.parentNode.replaceChild(this._gfxSystem.view, placeholder);
