@@ -55,12 +55,17 @@ define([
   ObjectEditorUI.prototype._onMouseDown = function (evt) {
     this._lastPointerCoordinates = [evt.clientX, evt.clientY];
     if (this._root.querySelector('#toggle-primitive-mode').checked) {
+      var cameraPosition = this._gfxSystem.getCameraPosition();
+      var viewportCoordinates = [
+        this._lastPointerCoordinates[0] - cameraPosition[0],
+        this._lastPointerCoordinates[1] - cameraPosition[1]
+      ];
       var cellSize = this._model.grid.getCellSize();
       var height =
         parseInt(this._root.querySelector('#select-grid-size-y').value);
       if (isNaN(height)) { height = cellSize[0]; }
 
-      var mapPoint = metrics.getMapCoordinates(this._lastPointerCoordinates);
+      var mapPoint = metrics.getMapCoordinates(viewportCoordinates);
       var position = [
         Math.floor(mapPoint[0] / cellSize[0]) * cellSize[0],
         mapPoint[1],

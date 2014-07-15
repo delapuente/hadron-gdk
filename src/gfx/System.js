@@ -80,20 +80,21 @@ define([
 
   RenderSystem.prototype.centerCamera = function (where) {
     where = where || [0, 0];
-    var oldPosition = [
-      this._activeCamera.position.x,
-      this._activeCamera.position.y
-    ];
+    var oldPosition = this.getCameraPosition();
     this._activeCamera.position.x = where[0] + this._renderer.width / 2;
     this._activeCamera.position.y = where[1] + this._renderer.height / 2;
     this.dispatchEvent('viewportMoved', {
       oldPosition: oldPosition,
-      position: [
-        this._activeCamera.position.x,
-        this._activeCamera.position.y
-      ]
+      position: this.getCameraPosition()
     });
     this._dispatchViewportChanged();
+  };
+
+  RenderSystem.prototype.getCameraPosition = function () {
+    return [
+      this._activeCamera.position.x,
+      this._activeCamera.position.y
+    ];
   };
 
   RenderSystem.prototype._dispatchViewportChanged = function () {

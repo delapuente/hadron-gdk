@@ -1,9 +1,8 @@
 
 define([
   'S',
-  'scene/nodes/geometries/Geometry',
-  'scene/nodes/geometries/CuboidRender'
-], function (S, Geometry, CuboidRender) {
+  'scene/nodes/geometries/Geometry'
+], function (S, Geometry) {
   'use strict';
 
   function Cuboid(dimensions) {
@@ -11,8 +10,6 @@ define([
     this.setDimensions(dimensions);
   }
   S.theClass(Cuboid).inheritsFrom(Geometry);
-
-  Cuboid.prototype.render = CuboidRender;
 
   Cuboid.prototype.getDimensions = function () {
     if (!this._dimensions) { return null; }
