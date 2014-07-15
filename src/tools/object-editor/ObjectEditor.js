@@ -3,8 +3,10 @@ define([
   'S',
   'lib/strongforce',
   'tools/helpers/grid/Grid',
-  'gfx/textures/Texture'
-], function (S, strongforce, Grid, Texture) {
+  'gfx/textures/Texture',
+  'scene/nodes/Node',
+  'scene/nodes/geometries/Cuboid'
+], function (S, strongforce, Grid, Texture, Node, Cuboid) {
   'use strict';
 
   var Model = strongforce.Model;
@@ -14,12 +16,12 @@ define([
     S.theObject(this)
       .has('grid', new Grid(gridSize))
       .has('layers', [])
-      .has('geometries', []);
+      .has('primitives', []);
   }
   S.theClass(ObjectEditor).inheritsFrom(Model);
 
   ObjectEditor.prototype.getSubmodels = function () {
-    return [this.grid].concat(this.layers).concat(this.geometries);
+    return [this.grid].concat(this.layers).concat(this.primitives);
   };
 
   ObjectEditor.prototype.addNewLayer = function (source, name) {
@@ -29,6 +31,16 @@ define([
     this.layers.push(newLayer);
     this.dispatchEvent('layerAdded', {
       layer: newLayer
+    });
+  };
+
+  ObjectEditor.prototype.addNewPrimitive = function (dimensions, position) {
+    position = position || [0, 0, 0];
+    var newGeometry = new Cuboid(dimensions);
+    var newPrimitive = S.augment(newGeometry).with(Node, position);
+    this.primitives.push(newGeometry);
+    this.dispatchEvent('primitiveAdded', {
+      primitive: newGeometry
     });
   };
 

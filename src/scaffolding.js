@@ -2,6 +2,20 @@
 define(function(require) {
   'use strict';
 
+  function augment(object) {
+    return {
+      'with': function (augmenter) {
+        var augmenterArguments = Array.prototype.slice.call(arguments, 1);
+        var newObject = Object.create(object);
+        the(newObject).mix(augmenter.prototype);
+        augmenter.apply(newObject, augmenterArguments);
+        newObject.__augmenters = newObject.__augmenters || [];
+        newObject.__augmenters.push(augmenter);
+        return newObject;
+      }
+    };
+  }
+
   function the(object) {
     return {
       has: function(a1, a2) {
@@ -47,15 +61,30 @@ define(function(require) {
         }
         Object.defineProperty(object, name, { set: setter });
         return this;
+      },
+
+      mix: function (other) {
+        for (var property in other) {
+          object[property] = other[property];
+        }
+        return this;
+      },
+
+      wasAugmentedBy: function (augmenter) {
+        var augmenters = object.__augmenters || [];
+        for (var i = 0, l = augmenters.length; i < l; i++) {
+          if (augmenters[i] === augmenter) { return true; }
+        }
+        return false;
       }
     };
   }
 
   function theClass(klass) {
-    var prototype = the(klass.prototype);
+    var theKlassPrototype = the(klass.prototype);
     return {
       has: function() {
-        prototype.has.apply(prototype, arguments);
+        theKlassPrototype.has.apply(theKlassPrototype, arguments);
         return this;
       },
 
@@ -67,9 +96,7 @@ define(function(require) {
 
       mix: function (other) {
         var mixin = other.prototype;
-        for (var property in mixin) if (mixin.hasOwnProperty(property)) {
-          klass.prototype[property] = mixin[property];
-        }
+        theKlassPrototype.mix(mixin);
         return this;
       }
     };
@@ -78,6 +105,7 @@ define(function(require) {
   return {
     the: the,
     theObject: the,
+    augment: augment,
     theClass: theClass
   };
 

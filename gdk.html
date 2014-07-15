@@ -39,10 +39,20 @@
         <label>Size Z:
           <input id="select-grid-size-z" type="number" step="5" value="50" />
         </label>
+        <label>Size Y:
+          <input id="select-grid-size-y" type="number" step="5" value="50" />
+        </label>
       </fieldset>
       <fieldset>
         <legend>Layers</legend>
         <input id="add-new-layer" accept="image/*" type="file" /> 
+        <ol id="layer-list">
+        </ol>
+      </fieldset>
+      <fieldset>
+        <legend>Primitives</legend>
+        <label><input id="toggle-primitive-mode" type="checkbox" accesskey='p'/>
+          Primitive mode</label>
         <ol id="layer-list">
         </ol>
       </fieldset>

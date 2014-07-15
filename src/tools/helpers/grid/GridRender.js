@@ -3,7 +3,7 @@ define([
   'S',
   'lib/strongforce',
   'gfx/System',
-  'gfx/metrics'
+  'scene/metrics'
 ], function (S, strongforce, GfxSystem, metrics) {
   'use strict';
 
@@ -15,8 +15,8 @@ define([
     this._grid = grid;
     this._gfxSystem = GfxSystem.getSystem();
     this._layer = this._gfxSystem.newLayer();
-    this._drawer = new this._gfxSystem.Graphics();
-    this._layer.addChild(this._drawer);
+    this._graphic = new this._gfxSystem.Graphics();
+    this._layer.addChild(this._graphic);
 
     grid.addEventListener(
       'cellSizeChanged',
@@ -43,6 +43,8 @@ define([
   };
 
   GridRender.prototype.drawGrid = function (sizeX, sizeZ, viewport) {
+    var p = metrics.getScreenCoordinates.bind(metrics);
+
     var sceneView = {
       topLeft: metrics.getMapCoordinates(viewport.topLeft),
       topRight: metrics.getMapCoordinates(viewport.topRight),
@@ -53,23 +55,23 @@ define([
     var endX = Math.ceil(sceneView.bottomRight[0] / sizeX) * sizeX;
     var startZ = Math.floor(sceneView.topRight[2] / sizeZ) * sizeZ;
     var endZ = Math.ceil(sceneView.bottomLeft[2] / sizeZ) * sizeZ;
-    var drawer = this._drawer;
+    var graphic = this._graphic;
 
-    drawer.clear();
-    drawer.lineStyle(1, 0x333333, 1.0);
+    graphic.clear();
+    graphic.lineStyle(1, 0x333333, 1.0);
     for (var x = startX; x < endX; x += sizeX) {
-      drawer.moveTo.apply(drawer, metrics.getScreenCoordinates([x, 0, startZ]));
-      drawer.lineTo.apply(drawer, metrics.getScreenCoordinates([x, 0, endZ]));
+      graphic.moveTo.apply(graphic, p([x, 0, startZ]));
+      graphic.lineTo.apply(graphic, p([x, 0, endZ]));
     }
     for (var z = startZ; z < endZ; z += sizeZ) {
-      drawer.moveTo.apply(drawer, metrics.getScreenCoordinates([startX, 0, z]));
-      drawer.lineTo.apply(drawer, metrics.getScreenCoordinates([endX, 0, z]));
+      graphic.moveTo.apply(graphic, p([startX, 0, z]));
+      graphic.lineTo.apply(graphic, p([endX, 0, z]));
     }
-    drawer.lineStyle(2, 0xFF0000, 1.0);
-    drawer.moveTo.apply(drawer, metrics.getScreenCoordinates([0, 0, startZ]));
-    drawer.lineTo.apply(drawer, metrics.getScreenCoordinates([0, 0, endZ]));
-    drawer.moveTo.apply(drawer, metrics.getScreenCoordinates([startX, 0, 0]));
-    drawer.lineTo.apply(drawer, metrics.getScreenCoordinates([endX, 0, 0]));
+    graphic.lineStyle(2, 0xFF0000, 1.0);
+    graphic.moveTo.apply(graphic, p([0, 0, startZ]));
+    graphic.lineTo.apply(graphic, p([0, 0, endZ]));
+    graphic.moveTo.apply(graphic, p([startX, 0, 0]));
+    graphic.lineTo.apply(graphic, p([endX, 0, 0]));
   };
 
   return GridRender;

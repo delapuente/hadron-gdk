@@ -1,8 +1,9 @@
 
 define([
   'gfx/System',
-  'lib/strongforce'
-], function (GfxSystem, strongforce) {
+  'lib/strongforce',
+  'scene/metrics'
+], function (GfxSystem, strongforce, metrics) {
   'use strict';
 
   var Loop = strongforce.Loop;
@@ -53,6 +54,21 @@ define([
 
   ObjectEditorUI.prototype._onMouseDown = function (evt) {
     this._lastPointerCoordinates = [evt.clientX, evt.clientY];
+    if (this._root.querySelector('#toggle-primitive-mode').checked) {
+      var cellSize = this._model.grid.getCellSize();
+      var height =
+        parseInt(this._root.querySelector('#select-grid-size-y').value);
+      if (isNaN(height)) { height = cellSize[0]; }
+
+      var mapPoint = metrics.getMapCoordinates(this._lastPointerCoordinates);
+      var position = [
+        Math.floor(mapPoint[0] / cellSize[0]) * cellSize[0],
+        mapPoint[1],
+        Math.floor(mapPoint[2] / cellSize[1]) * cellSize[1]
+      ];
+      var dimensions = [cellSize[0], height, cellSize[1]];
+      this._model.addNewPrimitive(dimensions, position);
+    }
   };
 
   ObjectEditorUI.prototype._changeCellSize = function () {
