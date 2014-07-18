@@ -1,9 +1,10 @@
 
 define([
   'S',
+  'structures/Graph',
   'lib/pixi',
   'lib/strongforce'
-], function (S, pixi, strongforce) {
+], function (S, Graph, pixi, strongforce) {
   'use strict';
 
   var EventEmitter = strongforce.EventEmitter;
@@ -17,6 +18,13 @@ define([
     this._renderer = pixi.autoDetectRenderer(width, height);
     this._stage = new pixi.Stage();
     this._activeCamera = new pixi.DisplayObjectContainer();
+    // TODO: Decouple this!
+    this._activeCamera.isospace = new pixi.DisplayObjectContainer();
+    this._activeCamera.background = new pixi.DisplayObjectContainer();
+    this._activeCamera.foreground = new pixi.DisplayObjectContainer();
+    this._activeCamera.addChild(this._activeCamera.background);
+    this._activeCamera.addChild(this._activeCamera.isospace);
+    this._activeCamera.addChild(this._activeCamera.foreground);
     this.centerCamera();
     this._stage.addChild(this._activeCamera);
     this._layers = [];
@@ -41,7 +49,18 @@ define([
   };
 
   RenderSystem.prototype.add = function (object) {
-    this._activeCamera.addChild(object);
+    this._activeCamera.background.addChild(object);
+  };
+
+  RenderSystem.prototype.clearIsospace = function () {
+    while (this._activeCamera.isospace.children.length > 0) {
+      this._activeCamera.isospace
+        .removeChild(this._activeCamera.isospace.getChildAt(0));
+    }
+  };
+
+  RenderSystem.prototype.addToIsospace = function (displayObject) {
+    this._activeCamera.isospace.addChild(displayObject);
   };
 
   RenderSystem.prototype.getViewport = function () {

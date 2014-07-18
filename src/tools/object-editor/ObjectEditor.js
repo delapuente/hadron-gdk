@@ -6,8 +6,10 @@ define([
   'gfx/textures/Texture',
   'scene/nodes/Node',
   'scene/nodes/geometries/Cuboid',
-  'gfx/fragments/CuboidFragment'
-], function (S, strongforce, Grid, Texture, Node, Cuboid, CuboidFragment) {
+  'gfx/fragments/CuboidFragment',
+  'gfx/Isospace'
+], function (S, strongforce, Grid, Texture, Node, Cuboid, CuboidFragment,
+             Isospace) {
   'use strict';
 
   var Model = strongforce.Model;
@@ -18,7 +20,7 @@ define([
       .has('grid', new Grid(gridSize))
       .has('layers', [])
       .has('primitives', [])
-      .has('fragments', []);
+      .has('isospace', new Isospace());
   }
   S.theClass(ObjectEditor).inheritsFrom(Model);
 
@@ -41,7 +43,8 @@ define([
     var newGeometry = new Cuboid(dimensions);
     var newPrimitive = S.augment(newGeometry).with(Node, position);
     var newFragment = new CuboidFragment(newPrimitive);
-    this.primitives.push(newGeometry);
+    this.isospace.addFragment(newFragment);
+    this.primitives.push(newPrimitive);
     this.dispatchEvent('primitiveAdded', {
       primitive: newGeometry
     });

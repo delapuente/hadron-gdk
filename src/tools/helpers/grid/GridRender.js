@@ -14,9 +14,8 @@ define([
 
     this._grid = grid;
     this._gfxSystem = GfxSystem.getSystem();
-    this._layer = this._gfxSystem.newLayer();
     this._graphic = new this._gfxSystem.Graphics();
-    this._layer.addChild(this._graphic);
+    this._gfxSystem.add(this._graphic);
 
     grid.addEventListener(
       'cellSizeChanged',

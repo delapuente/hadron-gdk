@@ -3,6 +3,7 @@ define([
   'use strict';
 
   var DIMETRIC_ANGLE = Math.atan(0.5);
+  // TODO: And this??
   var SCALE_FACTOR = Math.sqrt(10) / 4;
 
   var metrics = {

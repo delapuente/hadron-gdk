@@ -10,23 +10,26 @@ define([
   var Render = strongforce.Render;
 
   function CuboidFragmentRender(cuboidFragment, cuboidNode) {
-    this._cuboidNode = cuboidNode;
-    this._gfxSystem = GfxSystem.getSystem();
-    this._cuboidNode.addEventListener(
+    this._cuboidFragment = cuboidFragment;
+    this._cuboidFragment.addEventListener(
       'dimensionsChanged',
       this._onDimensionsChanged.bind(this)
     );
-    this._cuboidNode.addEventListener(
+    this._cuboidFragment.addEventListener(
       'positionChanged',
       this._onPositionChanged.bind(this)
     );
-    this._graphic = new this._gfxSystem.Graphics();
-    this._gfxSystem.add(this._graphic);
 
-    this.drawCuboid(this._cuboidNode.getDimensions());
-    this.placeCuboid(this._cuboidNode.getPosition());
+    this._gfxSystem = GfxSystem.getSystem();
+    this._graphic = new this._gfxSystem.Graphics();
+    this.drawCuboid(cuboidNode.getDimensions());
+    this.placeCuboid(cuboidNode.getPosition());
   }
   S.theClass(CuboidFragmentRender).inheritsFrom(Render);
+
+  CuboidFragmentRender.prototype.SIDE_COLOR = 0x4FBEE3;
+  CuboidFragmentRender.prototype.FRONT_COLOR = 0x429EBC;
+  CuboidFragmentRender.prototype.UP_COLOR = 0x59D6FF;
 
   CuboidFragmentRender.prototype._onDimensionsChanged = function (evt) {
     this.drawCuboid(evt.dimensions);
@@ -44,12 +47,28 @@ define([
     var p = metrics.getScreenCoordinates.bind(metrics);
     var graphic = this._graphic;
     graphic.clear();
-    graphic.beginFill(0xFF0000);
-    graphic.moveTo.apply(graphic, p([0, 0]));
-    graphic.lineTo.apply(graphic, p([sizeX, 0, 0]));
+    graphic.beginFill(this.UP_COLOR);
+    graphic.moveTo.apply(graphic, p([0, sizeY, 0]));
+    graphic.lineTo.apply(graphic, p([sizeX, sizeY, 0]));
+    graphic.lineTo.apply(graphic, p([sizeX, sizeY, sizeZ]));
+    graphic.lineTo.apply(graphic, p([0, sizeY, sizeZ]));
+    graphic.lineTo.apply(graphic, p([0, sizeY, 0]));
+    graphic.endFill();
+
+    graphic.beginFill(this.FRONT_COLOR);
+    graphic.moveTo.apply(graphic, p([0, 0, sizeZ]));
+    graphic.lineTo.apply(graphic, p([0, sizeY, sizeZ]));
+    graphic.lineTo.apply(graphic, p([sizeX, sizeY, sizeZ]));
     graphic.lineTo.apply(graphic, p([sizeX, 0, sizeZ]));
     graphic.lineTo.apply(graphic, p([0, 0, sizeZ]));
-    graphic.lineTo.apply(graphic, p([0, 0, 0]));
+    graphic.endFill();
+
+    graphic.beginFill(this.SIDE_COLOR);
+    graphic.moveTo.apply(graphic, p([sizeX, 0, sizeZ]));
+    graphic.lineTo.apply(graphic, p([sizeX, sizeY, sizeZ]));
+    graphic.lineTo.apply(graphic, p([sizeX, sizeY, 0]));
+    graphic.lineTo.apply(graphic, p([sizeX, 0, 0]));
+    graphic.lineTo.apply(graphic, p([sizeX, 0, sizeZ]));
     graphic.endFill();
   };
 
