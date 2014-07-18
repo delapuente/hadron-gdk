@@ -33,19 +33,19 @@ define([
   };
 
   TextureRender.prototype._dispatchOverTheTexture = function (data) {
-    this.dispatchEvent('mouseover', data);
+    this.dispatchEvent('mouseover', Object.create(data));
   };
 
   TextureRender.prototype._dispatchLeavingTheTexture = function (data) {
-    this.dispatchEvent('mouseout', data);
+    this.dispatchEvent('mouseout', Object.create(data));
   };
 
   TextureRender.prototype._dispatchClickTheTexture = function (data) {
-    this.dispatchEvent('mousedown', data);
+    this.dispatchEvent('mousedown', Object.create(data));
   };
 
   TextureRender.prototype._dispatchReleaseTheTexture = function (data) {
-    this.dispatchEvent('mouseup', data);
+    this.dispatchEvent('mouseup', Object.create(data));
   };
   return TextureRender;
 });
