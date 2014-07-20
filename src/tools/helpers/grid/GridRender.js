@@ -14,8 +14,7 @@ define([
 
     this._grid = grid;
     this._gfxSystem = GfxSystem.getSystem();
-    this._graphic = new this._gfxSystem.Graphics();
-    this._gfxSystem.add(this._graphic);
+    this.graphic = new this._gfxSystem.Graphics();
 
     grid.addEventListener(
       'cellSizeChanged',
@@ -54,7 +53,7 @@ define([
     var endX = Math.ceil(sceneView.bottomRight[0] / sizeX) * sizeX;
     var startZ = Math.floor(sceneView.topRight[2] / sizeZ) * sizeZ;
     var endZ = Math.ceil(sceneView.bottomLeft[2] / sizeZ) * sizeZ;
-    var graphic = this._graphic;
+    var graphic = this.graphic;
 
     graphic.clear();
     graphic.lineStyle(1, 0x333333, 1.0);

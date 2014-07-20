@@ -2,8 +2,10 @@
 define([
   'gfx/System',
   'lib/strongforce',
-  'scene/metrics'
-], function (GfxSystem, strongforce, metrics) {
+  'scene/metrics',
+  'gfx/Isospace',
+  'gfx/fragments/CuboidFragment'
+], function (GfxSystem, strongforce, metrics, Isospace, CuboidFragment) {
   'use strict';
 
   var Loop = strongforce.Loop;
@@ -13,6 +15,13 @@ define([
     this._gfxSystem.resizeViewport([600, 600]);
     this._gfxSystem.centerCamera();
     this._gfxSystem.setBgColor(0xF0F0F0);
+    this._gridLayer = this._gfxSystem.newLayer('grid-layer');
+    this._textureLayer = this._gfxSystem.newLayer('texture-layer');
+    this._isospaceLayer = this._gfxSystem.newLayer('isospace-layer');
+    this._isospaceLayer.alpha = 0.9;
+    this._isospace = new Isospace(this._isospaceLayer);
+
+    this._gridLayer.addChild(model.grid.render.graphic);
 
     var placeholder = root.querySelector('#canvas-placeholder');
     placeholder.parentNode.replaceChild(this._gfxSystem.view, placeholder);
@@ -36,7 +45,8 @@ define([
     // Layer controls
     var addNewLayer = root.querySelector('#add-new-layer');
     addNewLayer.addEventListener('change', this._loadImage.bind(this));
-    this._model.addEventListener('layerAdded', this._updateLayerList.bind(this));
+    this._model.addEventListener('layerAdded', this._addLayer.bind(this));
+    this._model.addEventListener('nodeAdded', this._addFragment.bind(this));
   };
 
   ObjectEditorUI.prototype._onMouseMove = function (evt) {
@@ -89,10 +99,15 @@ define([
     this._model.addNewLayer(objectURL, newTexture.name);
   };
 
-  ObjectEditorUI.prototype._updateLayerList = function (evt) {
+  ObjectEditorUI.prototype._addLayer = function (evt) {
+    var layer = evt.layer;
+    this._textureLayer.addChild(layer.render.graphic);
+    this._updateLayerList(layer);
+  };
+
+  ObjectEditorUI.prototype._updateLayerList = function (layer) {
     var layerList = this._root.querySelector('#layer-list');
     var li = document.createElement('li');
-    var layer = evt.layer;
     li.dataset.id = layer.id;
     li.textContent = layer.name;
     layer.render.addEventListener('mouseover', function () {
@@ -108,6 +123,11 @@ define([
       this._selectedLayer = null;
     }.bind(this));
     layerList.insertBefore(li, layerList.firstChild);
+  };
+
+  ObjectEditorUI.prototype._addFragment = function (evt) {
+    var fragment = new CuboidFragment(evt.node);
+    this._isospace.addFragment(fragment);
   };
 
   ObjectEditorUI.prototype._render = function (isPostCall, alpha) {

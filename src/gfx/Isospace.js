@@ -12,8 +12,8 @@ define([
     return fragmentA.getOverlapped(fragmentB) === fragmentA;
   }
 
-  function Isospace() {
-    Model.apply(this);
+  function Isospace(layer) {
+    Model.apply(this, arguments);
     S.theObject(this).has('graph', new Graph([], isOverlappedBy));
   };
   S.theClass(Isospace).inheritsFrom(Model);
@@ -35,9 +35,9 @@ define([
     });
   };
 
-  function IsospaceRender(isospace) {
+  function IsospaceRender(isospace, layer) {
     Render.apply(this);
-    this._gfxSystem = GfxSystem.getSystem();
+    this._layer = layer;
     this._isospace = isospace;
     this._isospace.addEventListener(
       'newFragmentAdded',
@@ -52,10 +52,16 @@ define([
   };
 
   IsospaceRender.prototype.buildScene = function (fragments) {
-    this._gfxSystem.clearIsospace();
+    this._clearLayer();
     fragments.forEach(function (fragment) {
-      this._gfxSystem.addToIsospace(fragment.render._graphic);
+      this._layer.addChild(fragment.render._graphic);
     }, this);
+  };
+
+  IsospaceRender.prototype._clearLayer = function () {
+    while (this._layer.children.length > 0) {
+      this._layer.removeChild(this._layer.getChildAt(0));
+    }
   };
 
   return Isospace;

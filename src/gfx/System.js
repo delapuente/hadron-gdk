@@ -3,8 +3,9 @@ define([
   'S',
   'structures/Graph',
   'lib/pixi',
-  'lib/strongforce'
-], function (S, Graph, pixi, strongforce) {
+  'lib/strongforce',
+  'gfx/Isospace'
+], function (S, Graph, pixi, strongforce, Isospace) {
   'use strict';
 
   var EventEmitter = strongforce.EventEmitter;
@@ -18,20 +19,16 @@ define([
     this._renderer = pixi.autoDetectRenderer(width, height);
     this._stage = new pixi.Stage();
     this._activeCamera = new pixi.DisplayObjectContainer();
-    // TODO: Decouple this!
-    this._activeCamera.isospace = new pixi.DisplayObjectContainer();
-    this._activeCamera.background = new pixi.DisplayObjectContainer();
-    this._activeCamera.foreground = new pixi.DisplayObjectContainer();
-    this._activeCamera.addChild(this._activeCamera.background);
-    this._activeCamera.addChild(this._activeCamera.isospace);
-    this._activeCamera.addChild(this._activeCamera.foreground);
-    this.centerCamera();
     this._stage.addChild(this._activeCamera);
     this._layers = [];
+
+    this.centerCamera();
 
     S.theObject(this).has('view', this._renderer.view);
   }
   S.theClass(RenderSystem).mix(EventEmitter);
+
+  RenderSystem.prototype.NEXT_LAYER_ID = 1;
 
   RenderSystem.prototype.render = function () {
     this._renderer.render(this._stage);
@@ -41,26 +38,13 @@ define([
     this._stage.setBackgroundColor(color);
   };
 
-  RenderSystem.prototype.newLayer = function () {
+  RenderSystem.prototype.newLayer = function (name) {
+    name = name || 'new-layer-' + this.NEXT_LAYER_ID++;
     var newLayer = new pixi.DisplayObjectContainer();
+    newLayer.name = name;
     this._layers.push(newLayer);
     this._activeCamera.addChild(newLayer);
     return newLayer;
-  };
-
-  RenderSystem.prototype.add = function (object) {
-    this._activeCamera.background.addChild(object);
-  };
-
-  RenderSystem.prototype.clearIsospace = function () {
-    while (this._activeCamera.isospace.children.length > 0) {
-      this._activeCamera.isospace
-        .removeChild(this._activeCamera.isospace.getChildAt(0));
-    }
-  };
-
-  RenderSystem.prototype.addToIsospace = function (displayObject) {
-    this._activeCamera.isospace.addChild(displayObject);
   };
 
   RenderSystem.prototype.getViewport = function () {

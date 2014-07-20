@@ -16,20 +16,19 @@ define([
     this._texture
       .addEventListener('positionChanged', this._updatePosition.bind(this));
     this._gfxSystem = GfxSystem.getSystem();
-    this._sprite = new this._gfxSystem.Sprite.fromImage(source);
-    this._sprite.interactive = true;
-    this._sprite.mouseover = this._dispatchOverTheTexture.bind(this);
-    this._sprite.mouseout = this._dispatchLeavingTheTexture.bind(this);
-    this._sprite.mousedown = this._dispatchClickTheTexture.bind(this);
-    this._sprite.mouseup = this._dispatchReleaseTheTexture.bind(this);
-    this._gfxSystem.add(this._sprite);
+    this.graphic = new this._gfxSystem.Sprite.fromImage(source);
+    this.graphic.interactive = true;
+    this.graphic.mouseover = this._dispatchOverTheTexture.bind(this);
+    this.graphic.mouseout = this._dispatchLeavingTheTexture.bind(this);
+    this.graphic.mousedown = this._dispatchClickTheTexture.bind(this);
+    this.graphic.mouseup = this._dispatchReleaseTheTexture.bind(this);
   }
   S.theClass(TextureRender).inheritsFrom(Render);
   S.theClass(TextureRender).mix(EventEmitter);
 
   TextureRender.prototype._updatePosition = function (evt) {
-    this._sprite.position.x = evt.position[0];
-    this._sprite.position.y = evt.position[1];
+    this.graphic.position.x = evt.position[0];
+    this.graphic.position.y = evt.position[1];
   };
 
   TextureRender.prototype._dispatchOverTheTexture = function (data) {
