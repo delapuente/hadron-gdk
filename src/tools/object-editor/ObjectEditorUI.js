@@ -18,17 +18,18 @@ define([
     this._gridLayer = this._gfxSystem.newLayer('grid-layer');
     this._textureLayer = this._gfxSystem.newLayer('texture-layer');
     this._isospaceLayer = this._gfxSystem.newLayer('isospace-layer');
-    this._isospaceLayer.alpha = 0.9;
+    this._isospaceLayer.alpha = 0.7;
     this._isospace = new Isospace(this._isospaceLayer);
 
     this._gridLayer.addChild(model.grid.render.graphic);
 
     var placeholder = root.querySelector('#canvas-placeholder');
     placeholder.parentNode.replaceChild(this._gfxSystem.view, placeholder);
-    this._gfxSystem
-      .view.addEventListener('mousedown', this._onMouseDown.bind(this));
-    this._gfxSystem
-      .view.addEventListener('mousemove', this._onMouseMove.bind(this));
+    this._gfxSystem.addEventListener('mousedown', this._onMouseDown.bind(this));
+    this._gfxSystem.addEventListener(
+      'mousemove',
+      this._onMouseMove.bind(this)
+    );
 
     this._root = root;
     this._model = model;
@@ -51,9 +52,10 @@ define([
 
   ObjectEditorUI.prototype._onMouseMove = function (evt) {
     if (this._selectedLayer) {
-      var deltaX = evt.clientX - this._lastPointerCoordinates[0];
-      var deltaY = evt.clientY - this._lastPointerCoordinates[1];
-      this._lastPointerCoordinates = [evt.clientX, evt.clientY];
+      var coordinates = evt.coordinates;
+      var deltaX = coordinates[0] - this._lastPointerCoordinates[0];
+      var deltaY = coordinates[1] - this._lastPointerCoordinates[1];
+      this._lastPointerCoordinates = [coordinates[0], coordinates[1]];
       var currentPosition = this._selectedLayer.getPosition();
       this._selectedLayer.setPosition([
         currentPosition[0] + deltaX,
@@ -63,7 +65,7 @@ define([
   };
 
   ObjectEditorUI.prototype._onMouseDown = function (evt) {
-    this._lastPointerCoordinates = [evt.clientX, evt.clientY];
+    this._lastPointerCoordinates = evt.coordinates;
     if (this._root.querySelector('#toggle-primitive-mode').checked) {
       var cameraPosition = this._gfxSystem.getCameraPosition();
       var viewportCoordinates = [
