@@ -53,7 +53,7 @@ define([
 
   ObjectEditorUI.prototype._onMouseMove = function (evt) {
     var coordinates = evt.coordinates;
-    this._lastPointerCoordinates = [coordinates[0], coordinates[1]];
+    this._currentPointerCoordinates = [coordinates[0], coordinates[1]];
 
     var inPrimitiveMode =
       this._root.querySelector('#toggle-primitive-mode').checked;
@@ -69,8 +69,8 @@ define([
     else if (this._isDrawingPrimitive) {
       var cameraPosition = this._gfxSystem.getCameraPosition();
       var viewportCoordinates = [
-        this._lastPointerCoordinates[0] - cameraPosition[0],
-        this._lastPointerCoordinates[1] - cameraPosition[1]
+        this._currentPointerCoordinates[0] - cameraPosition[0],
+        this._currentPointerCoordinates[1] - cameraPosition[1]
       ];
       var originPosition = this._selectedPrimitive.getPosition();
       var mapPoint = metrics.getMapCoordinates(viewportCoordinates);
@@ -83,8 +83,8 @@ define([
     else if (this._isSelectingPrimitiveHeight) {
       var cameraPosition = this._gfxSystem.getCameraPosition();
       var viewportCoordinates = [
-        this._lastPointerCoordinates[0] - cameraPosition[0],
-        this._lastPointerCoordinates[1] - cameraPosition[1]
+        this._currentPointerCoordinates[0] - cameraPosition[0],
+        this._currentPointerCoordinates[1] - cameraPosition[1]
       ];
       var dimensions = this._selectedPrimitive.getDimensions();
       dimensions[1] = metrics.getMapCoordinates(
@@ -93,6 +93,8 @@ define([
       )[1];
       this._selectedPrimitive.setDimensions(dimensions);
     }
+
+    this._lastPointerCoordinates = this._currentPointerCoordinates;
   };
 
   ObjectEditorUI.prototype._onMouseDown = function (evt) {
