@@ -42,6 +42,7 @@ define([
     this.dispatchEvent('nodeAdded', {
       node: geometryNode
     });
+    return geometryNode;
   };
 
   ObjectEditor.prototype.setGridSize = function (newDimensions) {

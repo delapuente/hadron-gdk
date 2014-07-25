@@ -26,6 +26,7 @@ define([
     var placeholder = root.querySelector('#canvas-placeholder');
     placeholder.parentNode.replaceChild(this._gfxSystem.view, placeholder);
     this._gfxSystem.addEventListener('mousedown', this._onMouseDown.bind(this));
+    this._gfxSystem.addEventListener('mouseup', this._onMouseUp.bind(this));
     this._gfxSystem.addEventListener(
       'mousemove',
       this._onMouseMove.bind(this)
@@ -51,40 +52,76 @@ define([
   };
 
   ObjectEditorUI.prototype._onMouseMove = function (evt) {
-    if (this._selectedLayer) {
-      var coordinates = evt.coordinates;
+    var coordinates = evt.coordinates;
+    this._lastPointerCoordinates = [coordinates[0], coordinates[1]];
+
+    var inPrimitiveMode =
+      this._root.querySelector('#toggle-primitive-mode').checked;
+    if (this._selectedLayer && !inPrimitiveMode) {
       var deltaX = coordinates[0] - this._lastPointerCoordinates[0];
       var deltaY = coordinates[1] - this._lastPointerCoordinates[1];
-      this._lastPointerCoordinates = [coordinates[0], coordinates[1]];
       var currentPosition = this._selectedLayer.getPosition();
       this._selectedLayer.setPosition([
         currentPosition[0] + deltaX,
         currentPosition[1] + deltaY
       ]);
     }
-  };
-
-  ObjectEditorUI.prototype._onMouseDown = function (evt) {
-    this._lastPointerCoordinates = evt.coordinates;
-    if (this._root.querySelector('#toggle-primitive-mode').checked) {
+    else if (this._isDrawingPrimitive) {
       var cameraPosition = this._gfxSystem.getCameraPosition();
       var viewportCoordinates = [
         this._lastPointerCoordinates[0] - cameraPosition[0],
         this._lastPointerCoordinates[1] - cameraPosition[1]
       ];
-      var cellSize = this._model.grid.getCellSize();
-      var height =
-        parseInt(this._root.querySelector('#select-grid-size-y').value);
-      if (isNaN(height)) { height = cellSize[0]; }
-
+      var originPosition = this._selectedPrimitive.getPosition();
       var mapPoint = metrics.getMapCoordinates(viewportCoordinates);
-      var position = [
-        Math.floor(mapPoint[0] / cellSize[0]) * cellSize[0],
-        mapPoint[1],
-        Math.floor(mapPoint[2] / cellSize[1]) * cellSize[1]
+      this._selectedPrimitive.setDimensions([
+        mapPoint[0] - originPosition[0],
+        0,
+        mapPoint[2] - originPosition[2]
+      ]);
+    }
+    else if (this._isSelectingPrimitiveHeight) {
+      var cameraPosition = this._gfxSystem.getCameraPosition();
+      var viewportCoordinates = [
+        this._lastPointerCoordinates[0] - cameraPosition[0],
+        this._lastPointerCoordinates[1] - cameraPosition[1]
       ];
-      var dimensions = [cellSize[0], height, cellSize[1]];
-      this._model.addNewPrimitive(dimensions, position);
+      var dimensions = this._selectedPrimitive.getDimensions();
+      dimensions[1] = metrics.getMapCoordinates(
+        viewportCoordinates,
+        { z: this._zPlane }
+      )[1];
+      this._selectedPrimitive.setDimensions(dimensions);
+    }
+  };
+
+  ObjectEditorUI.prototype._onMouseDown = function (evt) {
+    this._lastPointerCoordinates = evt.coordinates;
+    var inPrimitiveMode =
+      this._root.querySelector('#toggle-primitive-mode').checked;
+    if (inPrimitiveMode) {
+      this._isDrawingPrimitive = true;
+      var cameraPosition = this._gfxSystem.getCameraPosition();
+      var viewportCoordinates = [
+        this._lastPointerCoordinates[0] - cameraPosition[0],
+        this._lastPointerCoordinates[1] - cameraPosition[1]
+      ];
+      var mapPoint = metrics.getMapCoordinates(viewportCoordinates);
+      var dimensions = [0, 0, 0];
+      this._selectedPrimitive =
+        this._model.addNewPrimitive(dimensions, mapPoint);
+    }
+  };
+
+  ObjectEditorUI.prototype._onMouseUp = function (evt) {
+    if (this._isDrawingPrimitive) {
+      this._isDrawingPrimitive = false;
+      this._isSelectingPrimitiveHeight = true;
+      this._zPlane = this._selectedPrimitive.getPosition()[2] +
+                     this._selectedPrimitive.getDimensions()[2];
+    }
+    else if (this._isSelectingPrimitiveHeight) {
+      this._isSelectingPrimitiveHeight = false;
     }
   };
 

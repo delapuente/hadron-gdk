@@ -22,17 +22,39 @@ define([
 
   Isospace.prototype.addFragment = function (fragment) {
     var fragmentGraph = this.graph;
-
-    // Build the graph
     fragmentGraph.nodes.push(fragment);
-    fragmentGraph.buildGraph();
 
-    // Sort the graph
-    fragmentGraph.sort();
+    // Subscribe to fragment alterations
+    fragment.addEventListener(
+      'positionChanged',
+      this._onFragmentChanged.bind(this)
+    );
+    fragment.addEventListener(
+      'dimensionsChanged',
+      this._onFragmentChanged.bind(this)
+    );
 
     this.dispatchEvent('newFragmentAdded', {
       fragment: fragment
     });
+    this._dispatchIsospaceChanged();
+  };
+
+  Isospace.prototype._onFragmentChanged = function () {
+    this._dispatchIsospaceChanged();
+  };
+
+  Isospace.prototype._dispatchIsospaceChanged = function () {
+    this._sortSpace();
+    this.dispatchEvent('isospaceChanged', {
+      sortedFragments: this.graph.nodes
+    });
+  };
+
+  Isospace.prototype._sortSpace = function () {
+    var fragmentGraph = this.graph;
+    fragmentGraph.buildGraph();
+    fragmentGraph.sort();
   };
 
   function IsospaceRender(isospace, layer) {
@@ -40,13 +62,13 @@ define([
     this._layer = layer;
     this._isospace = isospace;
     this._isospace.addEventListener(
-      'newFragmentAdded',
-      this._onFragmentAdded.bind(this)
+      'isospaceChanged',
+      this._onIsospaceChanged.bind(this)
     );
   }
   S.theClass(IsospaceRender).inheritsFrom(Render);
 
-  IsospaceRender.prototype._onFragmentAdded = function (evt) {
+  IsospaceRender.prototype._onIsospaceChanged = function (evt) {
     var sortedFragments = this._isospace.graph.nodes;
     this.buildScene(sortedFragments);
   };

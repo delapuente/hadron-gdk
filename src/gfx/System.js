@@ -18,6 +18,7 @@ define([
     this._renderer = pixi.autoDetectRenderer(width, height);
     this._stage = new pixi.Stage();
     this._stage.mousedown = this._onStageMouseDown.bind(this);
+    this._stage.mouseup = this._onStageMouseUp.bind(this);
     this._stage.mousemove = this._onStageMouseMove.bind(this);
     this._activeCamera = new pixi.DisplayObjectContainer();
     this._stage.addChild(this._activeCamera);
@@ -110,6 +111,12 @@ define([
 
   RenderSystem.prototype._onStageMouseDown = function (evt) {
     this.dispatchEvent('mousedown', {
+      coordinates: [evt.global.x, evt.global.y]
+    });
+  };
+
+  RenderSystem.prototype._onStageMouseUp = function (evt) {
+    this.dispatchEvent('mouseup', {
       coordinates: [evt.global.x, evt.global.y]
     });
   };
