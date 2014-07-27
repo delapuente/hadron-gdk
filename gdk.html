@@ -19,11 +19,11 @@
         padding: 0.5rem;
       }
 
-      #layer-list li {
+      .element-list li {
         padding: 0.2rem;
       }
 
-      #layer-list li.selected {
+      .element-list li.selected {
         border: 0.1rem solid #1AA1EF;
       }
     </style>
@@ -46,14 +46,14 @@
       <fieldset>
         <legend>Layers</legend>
         <input id="add-new-layer" accept="image/*" type="file" /> 
-        <ol id="layer-list">
+        <ol id="layer-list" class="element-list">
         </ol>
       </fieldset>
       <fieldset>
         <legend>Primitives</legend>
         <label><input id="toggle-primitive-mode" type="checkbox" accesskey='p'/>
           Primitive mode</label>
-        <ol id="layer-list">
+        <ol id="fragment-list" class="element-list">
         </ol>
       </fieldset>
     </section>

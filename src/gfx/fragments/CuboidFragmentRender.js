@@ -8,8 +8,12 @@ define([
   'use strict';
 
   var Render = strongforce.Render;
+  var EventEmitter = strongforce.EventEmitter;
 
   function CuboidFragmentRender(cuboidFragment, cuboidNode) {
+    Render.apply(this);
+    EventEmitter.apply(this);
+
     this._cuboidFragment = cuboidFragment;
     this._cuboidFragment.addEventListener(
       'dimensionsChanged',
@@ -22,10 +26,18 @@ define([
 
     this._gfxSystem = GfxSystem.getSystem();
     this._graphic = new this._gfxSystem.Graphics();
+    this._graphic.interactive = true;
+    ['over', 'out', 'down', 'up'].forEach(function (action) {
+      var eventName = 'mouse' + action;
+      this._graphic[eventName] = function (data) {
+        this.dispatchEvent(eventName, Object.create(data));
+      }.bind(this);
+    }.bind(this));
     this.drawCuboid(cuboidNode.getDimensions());
     this.placeCuboid(cuboidNode.getPosition());
   }
   S.theClass(CuboidFragmentRender).inheritsFrom(Render);
+  S.theClass(CuboidFragmentRender).mix(EventEmitter);
 
   CuboidFragmentRender.prototype.SIDE_COLOR = 0x4FBEE3;
   CuboidFragmentRender.prototype.FRONT_COLOR = 0x429EBC;
@@ -106,6 +118,9 @@ define([
     graphic.lineTo.apply(graphic, p([0, 0, sizeZ]));
     graphic.lineTo.apply(graphic, p([0, sizeY, sizeZ]));
     graphic.lineTo.apply(graphic, p([0, sizeY, 0]));
+
+    graphic.updateBounds();
+    graphic.hitArea = graphic.getLocalBounds();
   };
 
   CuboidFragmentRender.prototype.placeCuboid = function (position) {

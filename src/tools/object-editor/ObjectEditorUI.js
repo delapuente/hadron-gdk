@@ -18,6 +18,7 @@ define([
     this._gridLayer = this._gfxSystem.newLayer('grid-layer');
     this._textureLayer = this._gfxSystem.newLayer('texture-layer');
     this._isospaceLayer = this._gfxSystem.newLayer('isospace-layer');
+    this._isospaceLayer.interactive = true;
     this._isospaceLayer.alpha = 0.7;
     this._isospace = new Isospace(this._isospaceLayer);
 
@@ -167,9 +168,32 @@ define([
     layerList.insertBefore(li, layerList.firstChild);
   };
 
+  ObjectEditorUI.prototype.FRAGMENT_ID = 1;
+
+  ObjectEditorUI.prototype._updateFragmentList = function (fragment) {
+    var fragmentList = this._root.querySelector('#fragment-list');
+    var li = document.createElement('li');
+    li.dataset.id = fragment.id;
+    li.textContent = 'fragment-' + this.FRAGMENT_ID++;
+    fragment.render.addEventListener('mouseover', function () {
+      li.classList.add('selected');
+    });
+    fragment.render.addEventListener('mouseout', function () {
+      li.classList.remove('selected');
+    });
+    fragment.render.addEventListener('mousedown', function () {
+      this._selectedFragment = fragment;
+    }.bind(this));
+    fragment.render.addEventListener('mouseup', function () {
+      this._selectedFragment = null;
+    }.bind(this));
+    fragmentList.insertBefore(li, fragmentList.firstChild);
+  };
+
   ObjectEditorUI.prototype._addFragment = function (evt) {
     var fragment = new CuboidFragment(evt.node);
     this._isospace.addFragment(fragment);
+    this._updateFragmentList(fragment);
   };
 
   ObjectEditorUI.prototype._render = function (isPostCall, alpha) {
