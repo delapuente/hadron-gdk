@@ -101,7 +101,8 @@ define([
     this._lastPointerCoordinates = evt.coordinates;
     var inPrimitiveMode =
       this._root.querySelector('#toggle-primitive-mode').checked;
-    if (inPrimitiveMode) {
+    if (inPrimitiveMode &&
+        !this._isDrawingPrimitive && !this._isSelectingPrimitiveHeight) {
       this._isDrawingPrimitive = true;
       var cameraPosition = this._gfxSystem.getCameraPosition();
       var viewportCoordinates = [

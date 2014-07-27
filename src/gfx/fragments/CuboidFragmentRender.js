@@ -47,6 +47,39 @@ define([
     var p = metrics.getScreenCoordinates.bind(metrics);
     var graphic = this._graphic;
     graphic.clear();
+
+    // Draw inner lines
+    graphic.lineStyle(2, 0x000000, 1.0);
+    graphic.moveTo.apply(graphic, p([0, 0, 0]));
+    graphic.lineTo.apply(graphic, p([sizeX, 0, 0]));
+    graphic.moveTo.apply(graphic, p([0, 0, 0]));
+    graphic.lineTo.apply(graphic, p([0, sizeY, 0]));
+    graphic.moveTo.apply(graphic, p([0, 0, 0]));
+    graphic.lineTo.apply(graphic, p([0, 0, sizeZ]));
+
+    // Front, rear and left side
+    graphic.lineStyle(0);
+    graphic.beginFill(this.FRONT_COLOR);
+    graphic.moveTo.apply(graphic, p([0, 0, sizeZ]));
+    graphic.lineTo.apply(graphic, p([0, sizeY, sizeZ]));
+    graphic.lineTo.apply(graphic, p([sizeX, sizeY, sizeZ]));
+    graphic.lineTo.apply(graphic, p([sizeX, 0, sizeZ]));
+    graphic.lineTo.apply(graphic, p([0, 0, sizeZ]));
+
+    graphic.moveTo.apply(graphic, p([0, 0, 0]));
+    graphic.lineTo.apply(graphic, p([0, sizeY, 0]));
+    graphic.lineTo.apply(graphic, p([sizeX, sizeY, 0]));
+    graphic.lineTo.apply(graphic, p([sizeX, 0, 0]));
+    graphic.lineTo.apply(graphic, p([0, 0, 0]));
+
+    graphic.moveTo.apply(graphic, p([0, 0, sizeZ]));
+    graphic.lineTo.apply(graphic, p([0, sizeY, sizeZ]));
+    graphic.lineTo.apply(graphic, p([0, sizeY, 0]));
+    graphic.lineTo.apply(graphic, p([0, 0, 0]));
+    graphic.lineTo.apply(graphic, p([0, 0, sizeZ]));
+    graphic.endFill();
+
+    // Top
     graphic.beginFill(this.UP_COLOR);
     graphic.moveTo.apply(graphic, p([0, sizeY, 0]));
     graphic.lineTo.apply(graphic, p([sizeX, sizeY, 0]));
@@ -55,14 +88,7 @@ define([
     graphic.lineTo.apply(graphic, p([0, sizeY, 0]));
     graphic.endFill();
 
-    graphic.beginFill(this.FRONT_COLOR);
-    graphic.moveTo.apply(graphic, p([0, 0, sizeZ]));
-    graphic.lineTo.apply(graphic, p([0, sizeY, sizeZ]));
-    graphic.lineTo.apply(graphic, p([sizeX, sizeY, sizeZ]));
-    graphic.lineTo.apply(graphic, p([sizeX, 0, sizeZ]));
-    graphic.lineTo.apply(graphic, p([0, 0, sizeZ]));
-    graphic.endFill();
-
+    // Right side
     graphic.beginFill(this.SIDE_COLOR);
     graphic.moveTo.apply(graphic, p([sizeX, 0, sizeZ]));
     graphic.lineTo.apply(graphic, p([sizeX, sizeY, sizeZ]));
@@ -70,6 +96,16 @@ define([
     graphic.lineTo.apply(graphic, p([sizeX, 0, 0]));
     graphic.lineTo.apply(graphic, p([sizeX, 0, sizeZ]));
     graphic.endFill();
+
+    // Contour
+    graphic.lineStyle(2, 0x333333, 1.0);
+    graphic.moveTo.apply(graphic, p([0, sizeY, 0]));
+    graphic.lineTo.apply(graphic, p([sizeX, sizeY, 0]));
+    graphic.lineTo.apply(graphic, p([sizeX, 0, 0]));
+    graphic.lineTo.apply(graphic, p([sizeX, 0, sizeZ]));
+    graphic.lineTo.apply(graphic, p([0, 0, sizeZ]));
+    graphic.lineTo.apply(graphic, p([0, sizeY, sizeZ]));
+    graphic.lineTo.apply(graphic, p([0, sizeY, 0]));
   };
 
   CuboidFragmentRender.prototype.placeCuboid = function (position) {
