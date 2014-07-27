@@ -132,6 +132,7 @@ define([
     }
     else if (this._isSelectingPrimitiveHeight) {
       this._isSelectingPrimitiveHeight = false;
+      this._root.querySelector('#toggle-primitive-mode').checked = false;
     }
   };
 
