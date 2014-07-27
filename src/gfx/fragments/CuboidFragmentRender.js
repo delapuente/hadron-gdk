@@ -25,11 +25,11 @@ define([
     );
 
     this._gfxSystem = GfxSystem.getSystem();
-    this._graphic = new this._gfxSystem.Graphics();
-    this._graphic.interactive = true;
+    this.graphic = new this._gfxSystem.Graphics();
+    this.graphic.interactive = true;
     ['over', 'out', 'down', 'up'].forEach(function (action) {
       var eventName = 'mouse' + action;
-      this._graphic[eventName] = function (data) {
+      this.graphic[eventName] = function (data) {
         this.dispatchEvent(eventName, Object.create(data));
       }.bind(this);
     }.bind(this));
@@ -57,7 +57,7 @@ define([
     var sizeZ = dimensions[2];
 
     var p = metrics.getScreenCoordinates.bind(metrics);
-    var graphic = this._graphic;
+    var graphic = this.graphic;
     graphic.clear();
 
     // Draw inner lines
@@ -125,8 +125,8 @@ define([
 
   CuboidFragmentRender.prototype.placeCuboid = function (position) {
     var screenPosition = metrics.getScreenCoordinates(position);
-    this._graphic.position.x = screenPosition[0];
-    this._graphic.position.y = screenPosition[1];
+    this.graphic.position.x = screenPosition[0];
+    this.graphic.position.y = screenPosition[1];
   };
 
   return CuboidFragmentRender;

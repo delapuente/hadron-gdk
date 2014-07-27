@@ -40,6 +40,12 @@ define([
     this._dispatchIsospaceChanged();
   };
 
+  Isospace.prototype.removeFragment = function (fragment) {
+    var fragmentGraph = this.graph;
+    fragmentGraph.nodes.splice(fragmentGraph.nodes.indexOf(fragment), 1);
+    this._dispatchIsospaceChanged();
+  };
+
   Isospace.prototype._onFragmentChanged = function () {
     this._dispatchIsospaceChanged();
   };
@@ -76,7 +82,7 @@ define([
   IsospaceRender.prototype.buildScene = function (fragments) {
     this._clearLayer();
     fragments.forEach(function (fragment) {
-      this._layer.addChild(fragment.render._graphic);
+      this._layer.addChild(fragment.render.graphic);
     }, this);
   };
 

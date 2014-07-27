@@ -34,6 +34,13 @@ define([
     });
   };
 
+  ObjectEditor.prototype.deleteLayer = function (layer) {
+    this.layers.splice(this.layers.indexOf(layer), 1);
+    this.dispatchEvent('layerDeleted', {
+      layer: layer
+    });
+  };
+
   ObjectEditor.prototype.addNewPrimitive = function (dimensions, position) {
     position = position || [0, 0, 0];
     var newGeometry = new Cuboid(dimensions);
@@ -43,6 +50,13 @@ define([
       node: geometryNode
     });
     return geometryNode;
+  };
+
+  ObjectEditor.prototype.deletePrimitive = function (primitive) {
+    this.primitives.splice(this.primitives.indexOf(primitive), 1);
+    this.dispatchEvent('nodeDeleted', {
+      node: primitive
+    });
   };
 
   ObjectEditor.prototype.setGridSize = function (newDimensions) {
