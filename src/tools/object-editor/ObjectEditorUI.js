@@ -56,6 +56,15 @@ define([
     this._model.addEventListener('nodeAdded', this._addFragment.bind(this));
     this._model
       .addEventListener('nodeDeleted', this._deleteFragment.bind(this));
+
+    // Ctrl key
+    window.addEventListener('keydown', function (evt) {
+      this._isCtrlPressed = evt.ctrlKey;
+    }.bind(this));
+
+    window.addEventListener('keyup', function (evt) {
+      this._isCtrlPressed = evt.ctrlKey;
+    }.bind(this));
   };
 
   ObjectEditorUI.prototype._onMouseMove = function (evt) {
@@ -82,13 +91,22 @@ define([
              !this._isDrawingPrimitive &&
              !this._isSelectingPrimitiveHeight) {
 
-      if (!this._movingOffset) {
+      if (!this._isCtrlPressed && !this._movingOffset) {
         this._movingOffset = metrics.getMapCoordinates(
           viewportCoordinates,
           { y: this._selectedPrimitive.getPosition()[1] }
         );
       }
-      else {
+      else if (this._isCtrlPressed && !this._movingOffset) {
+        this._movingOffset = metrics.getMapCoordinates(
+          viewportCoordinates,
+          {
+            x: this._selectedPrimitive.getPosition()[0],
+            z: this._selectedPrimitive.getPosition()[2]
+          }
+        );
+      }
+      else if (!this._isCtrlPressed) {
         var currentPosition = this._selectedPrimitive.getPosition();
         var mapPoint = metrics.getMapCoordinates(
           viewportCoordinates,
@@ -100,6 +118,23 @@ define([
           currentPosition[0] + deltaX,
           currentPosition[1],
           currentPosition[2] + deltaZ
+        ]);
+        this._movingOffset = mapPoint;
+      }
+      else {
+        var currentPosition = this._selectedPrimitive.getPosition();
+        var mapPoint = metrics.getMapCoordinates(
+          viewportCoordinates,
+          {
+            x: currentPosition[0],
+            z: currentPosition[2]
+          }
+        );
+        var deltaY = mapPoint[1] - this._movingOffset[1];
+        this._selectedPrimitive.setPosition([
+          currentPosition[0],
+          currentPosition[1] + deltaY,
+          currentPosition[2]
         ]);
         this._movingOffset = mapPoint;
       }
@@ -176,6 +211,7 @@ define([
     }
     else if (this._isSelectingPrimitiveHeight) {
       this._isSelectingPrimitiveHeight = false;
+      this._selectedPrimitive = null;
       this._root.querySelector('#toggle-primitive-mode').checked = false;
     }
   };

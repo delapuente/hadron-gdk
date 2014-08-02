@@ -28,6 +28,10 @@ define([
   S.theClass(TextureRender).inheritsFrom(Render);
   S.theClass(TextureRender).mix(EventEmitter);
 
+  TextureRender.prototype.getLocalBounds = function () {
+    return this.graphic.getLocalBounds();
+  };
+
   TextureRender.prototype._updatePosition = function (evt) {
     this.graphic.position.x = evt.position[0];
     this.graphic.position.y = evt.position[1];
