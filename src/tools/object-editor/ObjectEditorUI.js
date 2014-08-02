@@ -79,13 +79,23 @@ define([
         this._currentPointerCoordinates[0] - cameraPosition[0],
         this._currentPointerCoordinates[1] - cameraPosition[1]
       ];
-      var originPosition = this._selectedPrimitive.getPosition();
       var mapPoint = metrics.getMapCoordinates(viewportCoordinates);
-      this._selectedPrimitive.setDimensions([
-        mapPoint[0] - originPosition[0],
+      var newOriginPoint = this._startDrawingPoint.slice(0);
+      var newDimensions = [
+        mapPoint[0] - newOriginPoint[0],
         0,
-        mapPoint[2] - originPosition[2]
-      ]);
+        mapPoint[2] - newOriginPoint[2]
+      ];
+      if (newDimensions[0] < 0) {
+        newOriginPoint[0] += newDimensions[0];
+        newDimensions[0] = -newDimensions[0];
+      }
+      if (newDimensions[2] < 0) {
+        newOriginPoint[2] += newDimensions[2];
+        newDimensions[2] = -newDimensions[2];
+      }
+      this._selectedPrimitive.setPosition(newOriginPoint);
+      this._selectedPrimitive.setDimensions(newDimensions);
     }
     else if (this._isSelectingPrimitiveHeight) {
       var cameraPosition = this._gfxSystem.getCameraPosition();
@@ -94,10 +104,10 @@ define([
         this._currentPointerCoordinates[1] - cameraPosition[1]
       ];
       var dimensions = this._selectedPrimitive.getDimensions();
-      dimensions[1] = metrics.getMapCoordinates(
+      dimensions[1] = Math.max(0, metrics.getMapCoordinates(
         viewportCoordinates,
-        { z: this._zPlane }
-      )[1];
+        this._restrictions
+      )[1]);
       this._selectedPrimitive.setDimensions(dimensions);
     }
 
@@ -116,10 +126,10 @@ define([
         this._lastPointerCoordinates[0] - cameraPosition[0],
         this._lastPointerCoordinates[1] - cameraPosition[1]
       ];
-      var mapPoint = metrics.getMapCoordinates(viewportCoordinates);
+      this._startDrawingPoint = metrics.getMapCoordinates(viewportCoordinates);
       var dimensions = [0, 0, 0];
       this._selectedPrimitive =
-        this._model.addNewPrimitive(dimensions, mapPoint);
+        this._model.addNewPrimitive(dimensions, this._startDrawingPoint);
     }
   };
 
@@ -127,8 +137,14 @@ define([
     if (this._isDrawingPrimitive) {
       this._isDrawingPrimitive = false;
       this._isSelectingPrimitiveHeight = true;
-      this._zPlane = this._selectedPrimitive.getPosition()[2] +
-                     this._selectedPrimitive.getDimensions()[2];
+
+      var cameraPosition = this._gfxSystem.getCameraPosition();
+      var viewportCoordinates = [
+        this._currentPointerCoordinates[0] - cameraPosition[0],
+        this._currentPointerCoordinates[1] - cameraPosition[1]
+      ];
+      var mapPoint = metrics.getMapCoordinates(viewportCoordinates);
+      this._restrictions = { x: mapPoint[0], z: mapPoint[2] };
     }
     else if (this._isSelectingPrimitiveHeight) {
       this._isSelectingPrimitiveHeight = false;
@@ -187,6 +203,7 @@ define([
     }.bind(this));
     layer.render.addEventListener('mouseup', function () {
       this._selectedLayer = null;
+      this._highlightEntity(null);
     }.bind(this));
     layerList.insertBefore(li, layerList.firstChild);
     deleteButton.addEventListener('click', function () {
@@ -234,7 +251,8 @@ define([
     }.bind(this));
     fragment.render.addEventListener('mouseout', function () {
       li.classList.remove('selected');
-    });
+      this._highlightEntity(null);
+    }.bind(this));
     fragment.render.addEventListener('mousedown', function () {
       this._selectedFragment = fragment;
     }.bind(this));

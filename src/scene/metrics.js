@@ -16,14 +16,18 @@ define([
 
     getMapCoordinates: function (screenCoordinates, planeRestrictions) {
       planeRestrictions = planeRestrictions || { y: 0 };
-      var restriction = Object.keys(planeRestrictions)[0];
+      var restrictions = '';
+      restrictions  = 'x' in planeRestrictions ? 'X' : '';
+      restrictions += 'y' in planeRestrictions ? 'Y' : '';
+      restrictions += 'z' in planeRestrictions ? 'Z' : '';
       var x = screenCoordinates[0];
       var y = screenCoordinates[1];
-      var methodName = 'getMapCoordinatesOver' + restriction.toUpperCase();
-      return this[methodName](x, y, planeRestrictions[restriction]);
+      var methodName = 'getMapCoordinatesOver' + restrictions;
+      return this[methodName](x, y, planeRestrictions);
     },
 
-    getMapCoordinatesOverY: function (x, y, yPlane) {
+    getMapCoordinatesOverY: function (x, y, planeRestrictions) {
+      var yPlane = planeRestrictions.y;
       return [
         x/2 + y + yPlane,
         yPlane,
@@ -31,7 +35,8 @@ define([
       ];
     },
 
-    getMapCoordinatesOverZ: function (x, y, zPlane) {
+    getMapCoordinatesOverZ: function (x, y, planeRestrictions) {
+      var zPlane = planeRestrictions.z;
       return [
         x + zPlane,
         x/2 + zPlane - y,
@@ -39,11 +44,50 @@ define([
       ];
     },
 
-    getMapCoordinatesOverX: function (x, y, xPlane) {
+    getMapCoordinatesOverX: function (x, y, planeRestrictions) {
+      var xPlane = planeRestrictions.x;
       return [
         xPlane,
         xPlane - x/2 - y,
         xPlane - x
+      ];
+    },
+
+    getMapCoordinatesOverXY: function (x, y, planeRestrictions) {
+      var xPlane = planeRestrictions.x;
+      var yPlane = planeRestrictions.y;
+      return [
+        xPlane,
+        yPlane,
+        y + yplane - x/2
+      ];
+    },
+
+    getMapCoordinatesOverXZ: function (x, y, planeRestrictions) {
+      var xPlane = planeRestrictions.x;
+      var zPlane = planeRestrictions.z;
+      return [
+        xPlane,
+        (xPlane + zPlane)/2 - y,
+        zPlane
+      ];
+    },
+
+    getMapCoordinatesOverYZ: function (x, y, planeRestrictions) {
+      var yPlane = planeRestrictions.y;
+      var zPlane = planeRestrictions.z;
+      return [
+        x/2 + y + yPlane,
+        yPlane,
+        zPlane
+      ];
+    },
+
+    getMapCoordinatesOverXYZ: function (x, y, planeRestrictions) {
+      return [
+        planeRestrictions.x,
+        planeRestrictions.y,
+        planeRestrictions.z
       ];
     }
 
