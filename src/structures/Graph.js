@@ -5,7 +5,6 @@ define([
 
   function Graph(nodes, relationship) {
     S.theObject(this)
-      .has('_graph', {})
       .has('relationship', relationship);
     this.nodes = nodes;
     this.buildGraph();
@@ -13,7 +12,7 @@ define([
 
   Graph.prototype.buildGraph = function () {
     var relationship = this.relationship;
-    var graph = this._graph,
+    var graph = this._graph = {},
         nodes = this.nodes, lastIndex = nodes.length - 1;
 
     for (var i = lastIndex, node; node = nodes[i]; i--) {
@@ -49,9 +48,7 @@ define([
 
     function visit(node) {
       if (node.__visited__ === 'inprogress') {
-        throw new Error('Impossible to compute a topological sort because ' +
-                        JSON.stringify(node) + ' has been already visited in' +
-                        nodes);
+        console.warn('Impossible to compute a topological sorting.');
       }
       if (!node.__visited__) {
         node.__visited__ = 'inprogress'; // XXX: not used at the moment

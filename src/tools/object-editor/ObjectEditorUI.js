@@ -61,6 +61,11 @@ define([
   ObjectEditorUI.prototype._onMouseMove = function (evt) {
     var coordinates = evt.coordinates;
     this._currentPointerCoordinates = [coordinates[0], coordinates[1]];
+    var cameraPosition = this._gfxSystem.getCameraPosition();
+    var viewportCoordinates = [
+      this._currentPointerCoordinates[0] - cameraPosition[0],
+      this._currentPointerCoordinates[1] - cameraPosition[1]
+    ];
 
     var inPrimitiveMode =
       this._root.querySelector('#toggle-primitive-mode').checked;
@@ -73,14 +78,35 @@ define([
         currentPosition[1] + deltaY
       ]);
     }
+    else if (this._selectedPrimitive &&
+             !this._isDrawingPrimitive &&
+             !this._isSelectingPrimitiveHeight) {
+
+      if (!this._movingOffset) {
+        this._movingOffset = metrics.getMapCoordinates(
+          viewportCoordinates,
+          { y: this._selectedPrimitive.getPosition()[1] }
+        );
+      }
+      else {
+        var currentPosition = this._selectedPrimitive.getPosition();
+        var mapPoint = metrics.getMapCoordinates(
+          viewportCoordinates,
+          { y: currentPosition[1] }
+        );
+        var deltaX = mapPoint[0] - this._movingOffset[0];
+        var deltaZ = mapPoint[2] - this._movingOffset[2];
+        this._selectedPrimitive.setPosition([
+          currentPosition[0] + deltaX,
+          currentPosition[1],
+          currentPosition[2] + deltaZ
+        ]);
+        this._movingOffset = mapPoint;
+      }
+    }
     else if (this._isDrawingPrimitive) {
-      var cameraPosition = this._gfxSystem.getCameraPosition();
-      var viewportCoordinates = [
-        this._currentPointerCoordinates[0] - cameraPosition[0],
-        this._currentPointerCoordinates[1] - cameraPosition[1]
-      ];
-      var mapPoint = metrics.getMapCoordinates(viewportCoordinates);
       var newOriginPoint = this._startDrawingPoint.slice(0);
+      var mapPoint = metrics.getMapCoordinates(viewportCoordinates);
       var newDimensions = [
         mapPoint[0] - newOriginPoint[0],
         0,
@@ -116,16 +142,18 @@ define([
 
   ObjectEditorUI.prototype._onMouseDown = function (evt) {
     this._lastPointerCoordinates = evt.coordinates;
+    var cameraPosition = this._gfxSystem.getCameraPosition();
+    var viewportCoordinates = [
+      this._lastPointerCoordinates[0] - cameraPosition[0],
+      this._lastPointerCoordinates[1] - cameraPosition[1]
+    ];
+
     var inPrimitiveMode =
       this._root.querySelector('#toggle-primitive-mode').checked;
+
     if (inPrimitiveMode &&
         !this._isDrawingPrimitive && !this._isSelectingPrimitiveHeight) {
       this._isDrawingPrimitive = true;
-      var cameraPosition = this._gfxSystem.getCameraPosition();
-      var viewportCoordinates = [
-        this._lastPointerCoordinates[0] - cameraPosition[0],
-        this._lastPointerCoordinates[1] - cameraPosition[1]
-      ];
       this._startDrawingPoint = metrics.getMapCoordinates(viewportCoordinates);
       var dimensions = [0, 0, 0];
       this._selectedPrimitive =
@@ -254,10 +282,13 @@ define([
       this._highlightEntity(null);
     }.bind(this));
     fragment.render.addEventListener('mousedown', function () {
-      this._selectedFragment = fragment;
+      this._selectedPrimitive = fragment.node;
     }.bind(this));
     fragment.render.addEventListener('mouseup', function () {
-      this._selectedFragment = null;
+      if (!this._isDrawingPrimitive && !this._isSelectingPrimitiveHeight) {
+        this._selectedPrimitive = null;
+        this._movingOffset = null;
+      }
     }.bind(this));
     fragmentList.insertBefore(li, fragmentList.firstChild);
     li.addEventListener('mouseover', function () {
