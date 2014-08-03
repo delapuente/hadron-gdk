@@ -5,9 +5,10 @@ define([
   'scene/metrics',
   'gfx/Isospace',
   'gfx/fragments/CuboidFragment',
-  'tools/helpers/selections/SimpleSelector'
+  'tools/helpers/selections/SimpleSelector',
+  'tools/helpers/selections/Shadow'
 ], function (GfxSystem, strongforce, metrics, Isospace, CuboidFragment,
-             SimpleSelector) {
+             SimpleSelector, Shadow) {
   'use strict';
 
   var Loop = strongforce.Loop;
@@ -21,11 +22,13 @@ define([
     this._gridLayer = this._gfxSystem.newLayer('grid-layer');
     this._textureLayer = this._gfxSystem.newLayer('texture-layer');
     this._isospaceLayer = this._gfxSystem.newLayer('isospace-layer');
-    this._isospaceLayer.alpha = 0.7;
+    this._isospaceLayer.alpha = 0.5;
     this._isospace = new Isospace(this._isospaceLayer);
     this._highlight = new SimpleSelector();
+    this._shadow = new Shadow();
 
     this._gridLayer.addChild(model.grid.render.graphic);
+    this._gridLayer.addChild(this._shadow.render.graphic);
 
     var placeholder = root.querySelector('#canvas-placeholder');
     placeholder.parentNode.replaceChild(this._gfxSystem.view, placeholder);
@@ -133,7 +136,7 @@ define([
         var deltaY = mapPoint[1] - this._movingOffset[1];
         this._selectedPrimitive.setPosition([
           currentPosition[0],
-          currentPosition[1] + deltaY,
+          Math.max(0, currentPosition[1] + deltaY),
           currentPosition[2]
         ]);
         this._movingOffset = mapPoint;
@@ -257,16 +260,6 @@ define([
     li.appendChild(deleteButton);
     layer.render.addEventListener('mouseover', function () {
       li.classList.add('selected');
-      this._highlightEntity(layer);
-    }.bind(this));
-    layer.render.addEventListener('mouseout', function () {
-      li.classList.remove('selected');
-    });
-    layer.render.addEventListener('mousedown', function () {
-      this._selectedLayer = layer;
-    }.bind(this));
-    layer.render.addEventListener('mouseup', function () {
-      this._selectedLayer = null;
       this._highlightEntity(null);
     }.bind(this));
     layerList.insertBefore(li, layerList.firstChild);
@@ -312,10 +305,12 @@ define([
     fragment.render.addEventListener('mouseover', function () {
       li.classList.add('selected');
       this._highlightEntity(fragment);
+      this._showShadow(fragment.node);
     }.bind(this));
     fragment.render.addEventListener('mouseout', function () {
       li.classList.remove('selected');
       this._highlightEntity(null);
+      this._showShadow(null);
     }.bind(this));
     fragment.render.addEventListener('mousedown', function () {
       this._selectedPrimitive = fragment.node;
@@ -351,6 +346,10 @@ define([
     if (entity) {
       this._graphicEntities[entity.id].addChild(this._highlight.render.graphic);
     }
+  };
+
+  ObjectEditorUI.prototype._showShadow = function (node) {
+    this._shadow.setPrimitive(node);
   };
 
   ObjectEditorUI.prototype._render = function (isPostCall, alpha) {
