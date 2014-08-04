@@ -6,9 +6,10 @@ define([
   'gfx/Isospace',
   'gfx/fragments/CuboidFragment',
   'tools/helpers/selections/SimpleSelector',
-  'tools/helpers/selections/Shadow'
+  'tools/helpers/surfaces/Shadow',
+  'tools/helpers/handlers/Handler'
 ], function (GfxSystem, strongforce, metrics, Isospace, CuboidFragment,
-             SimpleSelector, Shadow) {
+             SimpleSelector, Shadow, Handler) {
   'use strict';
 
   var Loop = strongforce.Loop;
@@ -22,10 +23,13 @@ define([
     this._gridLayer = this._gfxSystem.newLayer('grid-layer');
     this._textureLayer = this._gfxSystem.newLayer('texture-layer');
     this._isospaceLayer = this._gfxSystem.newLayer('isospace-layer');
+    this._handlerLayer = this._gfxSystem.newLayer('handler-layer');
     this._isospaceLayer.alpha = 0.5;
     this._isospace = new Isospace(this._isospaceLayer);
     this._highlight = new SimpleSelector();
     this._shadow = new Shadow();
+    this._xzHandler = new Handler({ x: true, y: false, z: true });
+    this._yHandler = new Handler({ x: false, y: true, z: false });
 
     this._gridLayer.addChild(model.grid.render.graphic);
     this._gridLayer.addChild(this._shadow.render.graphic);
@@ -68,6 +72,11 @@ define([
     window.addEventListener('keyup', function (evt) {
       this._isCtrlPressed = evt.ctrlKey;
     }.bind(this));
+
+    var primitiveLayerAlpha = root.querySelector('#primitive-layer-alpha');
+    primitiveLayerAlpha.addEventListener('change', function (evt) {
+      this._isospaceLayer.alpha = evt.target.value;
+    }.bind(this));
   };
 
   ObjectEditorUI.prototype._onMouseMove = function (evt) {
@@ -78,6 +87,8 @@ define([
       this._currentPointerCoordinates[0] - cameraPosition[0],
       this._currentPointerCoordinates[1] - cameraPosition[1]
     ];
+    this._xzHandler.testScreenPosition(viewportCoordinates);
+    this._yHandler.testScreenPosition(viewportCoordinates);
 
     var inPrimitiveMode =
       this._root.querySelector('#toggle-primitive-mode').checked;
@@ -145,9 +156,10 @@ define([
     else if (this._isDrawingPrimitive) {
       var newOriginPoint = this._startDrawingPoint.slice(0);
       var mapPoint = metrics.getMapCoordinates(viewportCoordinates);
+      var dimensions = this._selectedPrimitive.getDimensions();
       var newDimensions = [
         mapPoint[0] - newOriginPoint[0],
-        0,
+        dimensions[1],
         mapPoint[2] - newOriginPoint[2]
       ];
       if (newDimensions[0] < 0) {
@@ -185,6 +197,10 @@ define([
       this._lastPointerCoordinates[0] - cameraPosition[0],
       this._lastPointerCoordinates[1] - cameraPosition[1]
     ];
+    this._isModifyingPrimitive =
+      this._xzHandler.testScreenPosition(viewportCoordinates);
+    this._isModifyingPrimitiveHeight =
+      this._yHandler.testScreenPosition(viewportCoordinates);
 
     var inPrimitiveMode =
       this._root.querySelector('#toggle-primitive-mode').checked;
@@ -197,12 +213,22 @@ define([
       this._selectedPrimitive =
         this._model.addNewPrimitive(dimensions, this._startDrawingPoint);
     }
+    else if (this._isModifyingPrimitive) {
+      this._selectedPrimitive = this._highlight.getSelection().node;
+      this._isDrawingPrimitive = true;
+      this._startDrawingPoint = this._selectedPrimitive.getPosition();
+    }
+    else if (this._isModifyingPrimitiveHeight) {
+      this._selectedPrimitive = this._highlight.getSelection().node;
+      this._isSelectingPrimitiveHeight = true;
+      this._startDrawingPoint = this._yHandler.getPosition();
+    }
   };
 
   ObjectEditorUI.prototype._onMouseUp = function (evt) {
     if (this._isDrawingPrimitive) {
       this._isDrawingPrimitive = false;
-      this._isSelectingPrimitiveHeight = true;
+      this._isSelectingPrimitiveHeight = !this._isModifyingPrimitive;
 
       var cameraPosition = this._gfxSystem.getCameraPosition();
       var viewportCoordinates = [
@@ -305,19 +331,29 @@ define([
     fragment.render.addEventListener('mouseover', function () {
       li.classList.add('selected');
       this._highlightEntity(fragment);
-      this._showShadow(fragment.node);
+      this._showPrimitiveHelpers(fragment.node);
     }.bind(this));
     fragment.render.addEventListener('mouseout', function () {
       li.classList.remove('selected');
       this._highlightEntity(null);
-      this._showShadow(null);
+      this._showPrimitiveHelpers(null);
     }.bind(this));
     fragment.render.addEventListener('mousedown', function () {
       this._selectedPrimitive = fragment.node;
     }.bind(this));
     fragment.render.addEventListener('mouseup', function () {
       if (!this._isDrawingPrimitive && !this._isSelectingPrimitiveHeight) {
-        this._selectedPrimitive = null;
+        if (this._selectedPrimitive) {
+          this._selectedPrimitive.removeEventListener(
+            'positionChanged',
+            this._boundOnPositionChanged
+          );
+          this._selectedPrimitive.removeEventListener(
+            'positionChanged',
+            this._boundOnPositionChangedForHeight
+          );
+          this._selectedPrimitive = null;
+        }
         this._movingOffset = null;
       }
     }.bind(this));
@@ -348,8 +384,65 @@ define([
     }
   };
 
-  ObjectEditorUI.prototype._showShadow = function (node) {
+  ObjectEditorUI.prototype._showPrimitiveHelpers = function (node) {
     this._shadow.setPrimitive(node);
+    this._boundOnPositionChanged =
+      this._boundOnPositionChanged ||
+      function onPositionChanged(evt) {
+        var position = evt.target.getPosition();
+        var dimensions = evt.target.getDimensions();
+        position[0] += dimensions[0];
+        position[2] += dimensions[2];
+        this._xzHandler.setPosition(position);
+      }.bind(this);
+
+    // XXX: As a side effect of how we redraw the primitive (by setting the
+    // position even if it is not changing), we end with an always updated
+    // y handler.
+    this._boundOnPositionChangedForHeight =
+      this._boundOnPositionChangedForHeight ||
+      function onPositionChangedForHeight(evt) {
+        var position = evt.target.getPosition();
+        var dimensions = evt.target.getDimensions();
+        position[0] += dimensions[0];
+        position[1] += dimensions[1];
+        position[2] += dimensions[2];
+        this._yHandler.setPosition(position);
+      }.bind(this);
+
+    if (node) {
+      this._handlerLayer.addChild(this._xzHandler.render.graphic);
+      this._handlerLayer.addChild(this._yHandler.render.graphic);
+      var hoverPrimitive = this._highlight.getSelection().node;
+      hoverPrimitive.addEventListener(
+        'positionChanged',
+        this._boundOnPositionChanged
+      );
+      hoverPrimitive.addEventListener(
+        'positionChanged',
+        this._boundOnPositionChangedForHeight
+      );
+      hoverPrimitive.addEventListener(
+        'dimensionsChanged',
+        this._boundOnPositionChangedForHeight
+      );
+      this._boundOnPositionChanged({
+        target: hoverPrimitive
+      });
+      this._boundOnPositionChangedForHeight({
+        target: hoverPrimitive
+      });
+    }
+    else {
+      if (this._handlerLayer.children
+          .indexOf(this._xzHandler.render.graphic) > -1) {
+        this._handlerLayer.removeChild(this._xzHandler.render.graphic);
+      }
+      if (this._handlerLayer.children
+          .indexOf(this._yHandler.render.graphic) > -1) {
+        this._handlerLayer.removeChild(this._yHandler.render.graphic);
+      }
+    }
   };
 
   ObjectEditorUI.prototype._render = function (isPostCall, alpha) {
