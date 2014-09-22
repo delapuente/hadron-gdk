@@ -5,11 +5,15 @@ define([
   'scene/metrics',
   'gfx/Isospace',
   'gfx/fragments/CuboidFragment',
+  'tools/object-editor/modes/TextureMode',
+  'tools/object-editor/modes/PrimitiveMode',
+  'tools/object-editor/modes/PrimitiveCreationMode',
   'tools/helpers/selections/SimpleSelector',
   'tools/helpers/surfaces/Shadow',
   'tools/helpers/handlers/Handler'
 ], function (GfxSystem, strongforce, metrics, Isospace, CuboidFragment,
-             SimpleSelector, Shadow, Handler) {
+             TextureMode, PrimitiveMode, PrimitiveCreationMode, SimpleSelector,
+             Shadow, Handler) {
   'use strict';
 
   var Loop = strongforce.Loop;
@@ -20,11 +24,13 @@ define([
     this._gfxSystem.resizeViewport([600, 600]);
     this._gfxSystem.centerCamera();
     this._gfxSystem.setBgColor(0xF0F0F0);
+
     this._gridLayer = this._gfxSystem.newLayer('grid-layer');
     this._textureLayer = this._gfxSystem.newLayer('texture-layer');
     this._isospaceLayer = this._gfxSystem.newLayer('isospace-layer');
     this._handlerLayer = this._gfxSystem.newLayer('handler-layer');
     this._isospaceLayer.alpha = 0.5;
+
     this._isospace = new Isospace(this._isospaceLayer);
     this._highlight = new SimpleSelector();
     this._shadow = new Shadow();
@@ -36,47 +42,125 @@ define([
 
     var placeholder = root.querySelector('#canvas-placeholder');
     placeholder.parentNode.replaceChild(this._gfxSystem.view, placeholder);
-    this._gfxSystem.addEventListener('mousedown', this._onMouseDown.bind(this));
-    this._gfxSystem.addEventListener('mouseup', this._onMouseUp.bind(this));
-    this._gfxSystem.addEventListener(
-      'mousemove',
-      this._onMouseMove.bind(this)
-    );
 
     this._root = root;
     this._model = model;
     this._model.render = this._render.bind(this);
+    this._setupControlModes();
+
     this._loop = new Loop({ rootModel: model });
     this._loop.start();
 
-    // Grid controls
-    var selectGridSizeX = root.querySelector('#select-grid-size-x');
-    selectGridSizeX.addEventListener('change', this._changeCellSize.bind(this));
-    var selectGridSizeZ = root.querySelector('#select-grid-size-z');
-    selectGridSizeZ.addEventListener('change', this._changeCellSize.bind(this));
+     //Grid controls
+    //var selectGridSizeX = root.querySelector('#select-grid-size-x');
+    //selectGridSizeX.addEventListener('change', this._changeCellSize.bind(this));
+    //var selectGridSizeZ = root.querySelector('#select-grid-size-z');
+    //selectGridSizeZ.addEventListener('change', this._changeCellSize.bind(this));
 
-    // Layer controls
-    var addNewLayer = root.querySelector('#add-new-layer');
-    addNewLayer.addEventListener('change', this._loadImage.bind(this));
-    this._model.addEventListener('layerAdded', this._addLayer.bind(this));
-    this._model.addEventListener('layerDeleted', this._deleteLayer.bind(this));
-    this._model.addEventListener('nodeAdded', this._addFragment.bind(this));
-    this._model
-      .addEventListener('nodeDeleted', this._deleteFragment.bind(this));
+    //// Ctrl key
+    //window.addEventListener('keydown', function (evt) {
+      //this._isCtrlPressed = evt.ctrlKey;
+    //}.bind(this));
 
-    // Ctrl key
-    window.addEventListener('keydown', function (evt) {
-      this._isCtrlPressed = evt.ctrlKey;
+    //window.addEventListener('keyup', function (evt) {
+      //this._isCtrlPressed = evt.ctrlKey;
+    //}.bind(this));
+  }
+
+  ObjectEditorUI.prototype._setupControlModes = function () {
+    this._currentMode = null;
+    this._isUnsafe = false;
+
+    this._textureTools = this._root.querySelector('#texture-tools');
+    this._primitiveTools = this._root.querySelector('#primitive-tools');
+    this._togglePrimitive =
+      this._primitiveTools.querySelector('#toggle-primitive-mode');
+
+    this._textureControlMode = new TextureMode(
+      this,
+      this._textureTools,
+      this._model,
+      this._textureLayer
+    );
+    this._primitiveMode = new PrimitiveMode(
+      this,
+      this._primitiveTools,
+      this._model,
+      this._isospace,
+      this._isospaceLayer
+    );
+    this._primitiveCreationMode = new PrimitiveCreationMode(
+      this,
+      this._model
+    );
+
+    this._textureTools.addEventListener('click', function () {
+      console.log('Texture mode selected');
+      return this._selectMode(this._textureControlMode);
+    }.bind(this), true);
+
+    this._primitiveTools.addEventListener('click', function () {
+      console.log('Primitive mode selected');
+      return this._selectMode(this._primitiveMode);
+    }.bind(this), true);
+
+    this._togglePrimitive.addEventListener('click', function () {
+      console.log('New primitive mode enabled');
+      return this._selectMode(this._primitiveCreationMode);
     }.bind(this));
 
-    window.addEventListener('keyup', function (evt) {
-      this._isCtrlPressed = evt.ctrlKey;
-    }.bind(this));
+    this._redirectToModes();
+  };
 
-    var primitiveLayerAlpha = root.querySelector('#primitive-layer-alpha');
-    primitiveLayerAlpha.addEventListener('change', function (evt) {
-      this._isospaceLayer.alpha = evt.target.value;
-    }.bind(this));
+  ObjectEditorUI.prototype._redirectToModes = function () {
+    var self = this;
+    redirectToMode('mouseup');
+    redirectToMode('mousedown');
+    redirectToMode('mousemove');
+
+    function redirectToMode(eventName) {
+      var hookName = 'on' + eventName;
+      self._gfxSystem.addEventListener(eventName, function (evt) {
+        if (!self._currentMode) { return; }
+        if (!self._currentMode[hookName]) { return; }
+
+        var fixedEvent = Object.create(evt);
+        var screenCoordiantes = evt.coordinates;
+        var referenceSpace = self._currentMode.referenceSpace;
+        var cameraPosition = self._gfxSystem.getCameraPosition();
+        var viewportCoordinates = [
+          screenCoordiantes[0] - cameraPosition[0],
+          screenCoordiantes[1] - cameraPosition[1]
+        ];
+        fixedEvent.viewportCoordinates = viewportCoordinates;
+
+        self._currentMode[hookName].call(self._currentMode, fixedEvent);
+      });
+    }
+  };
+
+  ObjectEditorUI.prototype._selectMode = function (mode) {
+    if (!this._isUnsafe) {
+      this._currentMode = mode;
+      return true;
+    }
+
+    return false;
+  };
+
+  ObjectEditorUI.prototype.notifyStartOfFlow = function (flowName) {
+    console.log('Starting flow ' + flowName);
+    this._isUnsafe = true;
+  };
+
+  ObjectEditorUI.prototype.notifyEndOfFlow = function (flowName) {
+    console.log('Ending flow ' + flowName);
+    this._isUnsafe = false;
+
+    if (flowName === 'creating-primitive') {
+      this._togglePrimitive.checked = false;
+      this._selectMode(this._primitiveMode);
+    }
   };
 
   ObjectEditorUI.prototype._onMouseMove = function (evt) {
@@ -90,18 +174,7 @@ define([
     this._xzHandler.testScreenPosition(viewportCoordinates);
     this._yHandler.testScreenPosition(viewportCoordinates);
 
-    var inPrimitiveMode =
-      this._root.querySelector('#toggle-primitive-mode').checked;
-    if (this._selectedLayer && !inPrimitiveMode) {
-      var deltaX = coordinates[0] - this._lastPointerCoordinates[0];
-      var deltaY = coordinates[1] - this._lastPointerCoordinates[1];
-      var currentPosition = this._selectedLayer.getPosition();
-      this._selectedLayer.setPosition([
-        currentPosition[0] + deltaX,
-        currentPosition[1] + deltaY
-      ]);
-    }
-    else if (this._selectedPrimitive &&
+    if (this._selectedPrimitive &&
              !this._isDrawingPrimitive &&
              !this._isSelectingPrimitiveHeight) {
 
@@ -153,39 +226,6 @@ define([
         this._movingOffset = mapPoint;
       }
     }
-    else if (this._isDrawingPrimitive) {
-      var newOriginPoint = this._startDrawingPoint.slice(0);
-      var mapPoint = metrics.getMapCoordinates(viewportCoordinates);
-      var dimensions = this._selectedPrimitive.getDimensions();
-      var newDimensions = [
-        mapPoint[0] - newOriginPoint[0],
-        dimensions[1],
-        mapPoint[2] - newOriginPoint[2]
-      ];
-      if (newDimensions[0] < 0) {
-        newOriginPoint[0] += newDimensions[0];
-        newDimensions[0] = -newDimensions[0];
-      }
-      if (newDimensions[2] < 0) {
-        newOriginPoint[2] += newDimensions[2];
-        newDimensions[2] = -newDimensions[2];
-      }
-      this._selectedPrimitive.setPosition(newOriginPoint);
-      this._selectedPrimitive.setDimensions(newDimensions);
-    }
-    else if (this._isSelectingPrimitiveHeight) {
-      var cameraPosition = this._gfxSystem.getCameraPosition();
-      var viewportCoordinates = [
-        this._currentPointerCoordinates[0] - cameraPosition[0],
-        this._currentPointerCoordinates[1] - cameraPosition[1]
-      ];
-      var dimensions = this._selectedPrimitive.getDimensions();
-      dimensions[1] = Math.max(0, metrics.getMapCoordinates(
-        viewportCoordinates,
-        this._restrictions
-      )[1]);
-      this._selectedPrimitive.setDimensions(dimensions);
-    }
 
     this._lastPointerCoordinates = this._currentPointerCoordinates;
   };
@@ -197,23 +237,8 @@ define([
       this._lastPointerCoordinates[0] - cameraPosition[0],
       this._lastPointerCoordinates[1] - cameraPosition[1]
     ];
-    this._isModifyingPrimitive =
-      this._xzHandler.testScreenPosition(viewportCoordinates);
-    this._isModifyingPrimitiveHeight =
-      this._yHandler.testScreenPosition(viewportCoordinates);
 
-    var inPrimitiveMode =
-      this._root.querySelector('#toggle-primitive-mode').checked;
-
-    if (inPrimitiveMode &&
-        !this._isDrawingPrimitive && !this._isSelectingPrimitiveHeight) {
-      this._isDrawingPrimitive = true;
-      this._startDrawingPoint = metrics.getMapCoordinates(viewportCoordinates);
-      var dimensions = [0, 0, 0];
-      this._selectedPrimitive =
-        this._model.addNewPrimitive(dimensions, this._startDrawingPoint);
-    }
-    else if (this._isModifyingPrimitive) {
+    if (this._isModifyingPrimitive) {
       this._selectedPrimitive = this._highlight.getSelection().node;
       this._isDrawingPrimitive = true;
       this._startDrawingPoint = this._selectedPrimitive.getPosition();
@@ -225,151 +250,11 @@ define([
     }
   };
 
-  ObjectEditorUI.prototype._onMouseUp = function (evt) {
-    if (this._isDrawingPrimitive) {
-      this._isDrawingPrimitive = false;
-      this._isSelectingPrimitiveHeight = !this._isModifyingPrimitive;
-
-      var cameraPosition = this._gfxSystem.getCameraPosition();
-      var viewportCoordinates = [
-        this._currentPointerCoordinates[0] - cameraPosition[0],
-        this._currentPointerCoordinates[1] - cameraPosition[1]
-      ];
-      var mapPoint = metrics.getMapCoordinates(viewportCoordinates);
-      this._restrictions = { x: mapPoint[0], z: mapPoint[2] };
-    }
-    else if (this._isSelectingPrimitiveHeight) {
-      this._isSelectingPrimitiveHeight = false;
-      this._selectedPrimitive = null;
-      this._root.querySelector('#toggle-primitive-mode').checked = false;
-    }
-  };
-
   ObjectEditorUI.prototype._changeCellSize = function () {
     var sizeX = parseInt(this._root.querySelector('#select-grid-size-x').value);
     var sizeZ = parseInt(this._root.querySelector('#select-grid-size-z').value);
     if (isNaN(sizeX) || isNaN(sizeZ)) { return; }
     this._model.grid.setCellSize([sizeX, sizeZ]);
-  };
-
-  ObjectEditorUI.prototype._loadImage = function () {
-    var newTexture = this._root.querySelector('#add-new-layer').files[0];
-    var objectURL = URL.createObjectURL(newTexture);
-    this._model.addNewLayer(objectURL, newTexture.name);
-  };
-
-  ObjectEditorUI.prototype._addLayer = function (evt) {
-    var layer = evt.layer;
-    this._textureLayer.addChild(layer.render.graphic);
-    this._graphicEntities[layer.id] = layer.render.graphic;
-    this._updateLayerList(layer);
-  };
-
-  ObjectEditorUI.prototype._deleteLayer = function (evt) {
-    var layer = evt.layer;
-    this._textureLayer.removeChild(layer.render.graphic);
-    if (this._highlighedEntity === layer) {
-      this._highlightEntity(null);
-    }
-    delete this._graphicEntities[layer.id];
-    this._removeFromLayerList(layer);
-  };
-
-  ObjectEditorUI.prototype._updateLayerList = function (layer) {
-    var layerList = this._root.querySelector('#layer-list');
-    var li = document.createElement('li');
-    var deleteButton = document.createElement('button');
-    deleteButton.textContent = 'delete';
-    deleteButton.type = 'button';
-    li.dataset.id = layer.id;
-    li.textContent = layer.name;
-    li.appendChild(deleteButton);
-    layer.render.addEventListener('mouseover', function () {
-      li.classList.add('selected');
-      this._highlightEntity(null);
-    }.bind(this));
-    layerList.insertBefore(li, layerList.firstChild);
-    deleteButton.addEventListener('click', function () {
-      this._model.deleteLayer(layer);
-    }.bind(this));
-  };
-
-  ObjectEditorUI.prototype._removeFromLayerList = function (layer) {
-    var layerList = this._root.querySelector('#layer-list');
-    var li = layerList.querySelector('[data-id="' + layer.id + '"]');
-    li.parentNode.removeChild(li);
-  };
-
-  ObjectEditorUI.prototype._addFragment = function (evt) {
-    var fragment = new CuboidFragment(evt.node);
-    this._isospace.addFragment(fragment);
-    this._graphicEntities[fragment.id] = fragment.render.graphic;
-    this._updateFragmentList(fragment);
-  };
-
-  ObjectEditorUI.prototype._deleteFragment = function (evt) {
-    var fragment = evt.node;
-    this._isospace.removeFragment(fragment);
-    if (this._highlighedEntity === fragment) {
-      this._highlightEntity(null);
-    }
-    delete this._graphicEntities[fragment.id];
-    this._removeFromFragmentList(fragment);
-  };
-
-  ObjectEditorUI.prototype.FRAGMENT_ID = 1;
-
-  ObjectEditorUI.prototype._updateFragmentList = function (fragment) {
-    var fragmentList = this._root.querySelector('#fragment-list');
-    var li = document.createElement('li');
-    var deleteButton = document.createElement('button');
-    deleteButton.textContent = 'delete';
-    deleteButton.type = 'button';
-    li.dataset.id = fragment.id;
-    li.textContent = 'fragment-' + this.FRAGMENT_ID++;
-    li.appendChild(deleteButton);
-    fragment.render.addEventListener('mouseover', function () {
-      li.classList.add('selected');
-      this._highlightEntity(fragment);
-      this._showPrimitiveHelpers(fragment.node);
-    }.bind(this));
-    fragment.render.addEventListener('mouseout', function () {
-      li.classList.remove('selected');
-      this._highlightEntity(null);
-      this._showPrimitiveHelpers(null);
-    }.bind(this));
-    fragment.render.addEventListener('mousedown', function () {
-      this._selectedPrimitive = fragment.node;
-    }.bind(this));
-    fragment.render.addEventListener('mouseup', function () {
-      if (!this._isDrawingPrimitive && !this._isSelectingPrimitiveHeight) {
-        if (this._selectedPrimitive) {
-          this._selectedPrimitive.removeEventListener(
-            'positionChanged',
-            this._boundOnPositionChanged
-          );
-          this._selectedPrimitive.removeEventListener(
-            'positionChanged',
-            this._boundOnPositionChangedForHeight
-          );
-          this._selectedPrimitive = null;
-        }
-        this._movingOffset = null;
-      }
-    }.bind(this));
-    fragmentList.insertBefore(li, fragmentList.firstChild);
-    li.addEventListener('mouseover', function () {
-      this._highlightEntity(fragment);
-    }.bind(this));
-    deleteButton.addEventListener('click', function () {
-      this._model.deletePrimitive(fragment);
-    }.bind(this));
-  };
-
-  ObjectEditorUI.prototype._removeFromFragmentList = function (fragment) {
-    var fragmentList = document.querySelector('#fragment-list');
-    var li = fragmentList.querySelector('[data-id="' + fragment.id  + '"]');
-    li.parentNode.removeChild(li);
   };
 
   ObjectEditorUI.prototype._highlightEntity = function (entity) {

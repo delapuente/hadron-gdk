@@ -15,29 +15,28 @@ define([
     Model.call(this);
     S.theObject(this)
       .has('grid', new Grid(gridSize))
-      .has('layers', [])
+      .has('textures', [])
       .has('primitives', []);
   }
   S.theClass(ObjectEditor).inheritsFrom(Model);
 
   ObjectEditor.prototype.getSubmodels = function () {
-    return [this.grid].concat(this.layers).concat(this.primitives);
+    return [this.grid].concat(this.textures).concat(this.primitives);
   };
 
-  ObjectEditor.prototype.addNewLayer = function (source, name) {
-    var newTexture = new Texture(source);
-    var newLayer = Object.create(newTexture);
-    newLayer.name = name;
-    this.layers.push(newLayer);
-    this.dispatchEvent('layerAdded', {
-      layer: newLayer
+  ObjectEditor.prototype.addNewTexture = function (source, name) {
+    var newTexture = Object.create(new Texture(source));
+    newTexture.name = name;
+    this.textures.push(newTexture);
+    this.dispatchEvent('textureAdded', {
+      texture: newTexture
     });
   };
 
-  ObjectEditor.prototype.deleteLayer = function (layer) {
-    this.layers.splice(this.layers.indexOf(layer), 1);
-    this.dispatchEvent('layerDeleted', {
-      layer: layer
+  ObjectEditor.prototype.deleteTexture = function (texture) {
+    this.textures.splice(this.textures.indexOf(texture), 1);
+    this.dispatchEvent('textureDeleted', {
+      texture: texture
     });
   };
 
@@ -46,7 +45,7 @@ define([
     var newGeometry = new Cuboid(dimensions);
     var geometryNode = S.augment(newGeometry).with(Node, position);
     this.primitives.push(geometryNode);
-    this.dispatchEvent('nodeAdded', {
+    this.dispatchEvent('primitiveAdded', {
       node: geometryNode
     });
     return geometryNode;
@@ -54,7 +53,7 @@ define([
 
   ObjectEditor.prototype.deletePrimitive = function (primitive) {
     this.primitives.splice(this.primitives.indexOf(primitive), 1);
-    this.dispatchEvent('nodeDeleted', {
+    this.dispatchEvent('primitiveDeleted', {
       node: primitive
     });
   };

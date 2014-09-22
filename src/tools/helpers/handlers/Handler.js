@@ -48,7 +48,7 @@ define([
   };
 
   Handler.prototype.setEnabled = function (enabled) {
-    this._enabled = true;
+    this._enabled = enabled;
     this.dispatchEvent('stateChanged', {
       isEnabled: enabled,
       position: this.getPosition(),
@@ -68,7 +68,7 @@ define([
     this._directions = directions;
     this.dispatchEvent('directionsSet', {
       directions: directions
-    })
+    });
   };
 
   Handler.prototype.render = HandlerRender;
