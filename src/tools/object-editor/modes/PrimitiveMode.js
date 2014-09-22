@@ -72,7 +72,7 @@ define([
     }
     else {
       restrictions = {
-        y: this._lastPointerCoordinates[0],
+        y: this._lastPointerCoordinates[1],
       };
     }
 
