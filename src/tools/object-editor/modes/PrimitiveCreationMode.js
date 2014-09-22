@@ -24,9 +24,6 @@ define([
         break;
 
       case 'SETTING_HEIGHT':
-        this._control.notifyEndOfFlow('creating-primitive');
-        this._creatingPrimitiveStage = 'FINISHED';
-
         this._newPrimitive = null;
         break;
     }
@@ -38,6 +35,10 @@ define([
         var mapPoint = metrics.getMapCoordinates(evt.viewportCoordinates);
         this._endPointRestrictions = { x: mapPoint[0], z: mapPoint[2] };
         this._creatingPrimitiveStage = 'SETTING_HEIGHT';
+        break;
+      case 'SETTING_HEIGHT':
+        this._creatingPrimitiveStage = 'FINISHED';
+        this._control.notifyEndOfFlow('creating-primitive');
         break;
     }
   };
