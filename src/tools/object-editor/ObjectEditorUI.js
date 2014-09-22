@@ -51,20 +51,11 @@ define([
     this._loop = new Loop({ rootModel: model });
     this._loop.start();
 
-     //Grid controls
-    //var selectGridSizeX = root.querySelector('#select-grid-size-x');
-    //selectGridSizeX.addEventListener('change', this._changeCellSize.bind(this));
-    //var selectGridSizeZ = root.querySelector('#select-grid-size-z');
-    //selectGridSizeZ.addEventListener('change', this._changeCellSize.bind(this));
-
-    //// Ctrl key
-    //window.addEventListener('keydown', function (evt) {
-      //this._isCtrlPressed = evt.ctrlKey;
-    //}.bind(this));
-
-    //window.addEventListener('keyup', function (evt) {
-      //this._isCtrlPressed = evt.ctrlKey;
-    //}.bind(this));
+    //Grid controls
+    var selectGridSizeX = root.querySelector('#select-grid-size-x');
+    selectGridSizeX.addEventListener('change', this._changeCellSize.bind(this));
+    var selectGridSizeZ = root.querySelector('#select-grid-size-z');
+    selectGridSizeZ.addEventListener('change', this._changeCellSize.bind(this));
   }
 
   ObjectEditorUI.prototype._setupControlModes = function () {
@@ -114,34 +105,32 @@ define([
 
   ObjectEditorUI.prototype._redirectToModes = function () {
     var self = this;
+    redirectToMode('keyup', window);
+    redirectToMode('keydown', window);
     redirectToMode('mouseup');
     redirectToMode('mousedown');
     redirectToMode('mousemove');
 
-    function redirectToMode(eventName) {
+    function redirectToMode(eventName, fromTarget) {
+      fromTarget = fromTarget || self._gfxSystem;
       var hookName = 'on' + eventName;
-      self._gfxSystem.addEventListener(eventName, function (evt) {
+      fromTarget.addEventListener(eventName, function (evt) {
         if (!self._currentMode) { return; }
         if (!self._currentMode[hookName]) { return; }
-
-        var fixedEvent = Object.create(evt);
-        var screenCoordiantes = evt.coordinates;
-        var referenceSpace = self._currentMode.referenceSpace;
-        var cameraPosition = self._gfxSystem.getCameraPosition();
-        var viewportCoordinates = [
-          screenCoordiantes[0] - cameraPosition[0],
-          screenCoordiantes[1] - cameraPosition[1]
-        ];
-        fixedEvent.viewportCoordinates = viewportCoordinates;
-
-        self._currentMode[hookName].call(self._currentMode, fixedEvent);
+        self._currentMode[hookName].call(self._currentMode, evt);
       });
     }
   };
 
   ObjectEditorUI.prototype._selectMode = function (mode) {
     if (!this._isUnsafe) {
+      if (this._currentMode && this._currentMode.disable) {
+        this._currentMode.disable();
+      }
       this._currentMode = mode;
+      if (this._currentMode && this._currentMode.enable) {
+        this._currentMode.enable();
+      }
       return true;
     }
 
@@ -160,93 +149,6 @@ define([
     if (flowName === 'creating-primitive') {
       this._togglePrimitive.checked = false;
       this._selectMode(this._primitiveMode);
-    }
-  };
-
-  ObjectEditorUI.prototype._onMouseMove = function (evt) {
-    var coordinates = evt.coordinates;
-    this._currentPointerCoordinates = [coordinates[0], coordinates[1]];
-    var cameraPosition = this._gfxSystem.getCameraPosition();
-    var viewportCoordinates = [
-      this._currentPointerCoordinates[0] - cameraPosition[0],
-      this._currentPointerCoordinates[1] - cameraPosition[1]
-    ];
-    this._xzHandler.testScreenPosition(viewportCoordinates);
-    this._yHandler.testScreenPosition(viewportCoordinates);
-
-    if (this._selectedPrimitive &&
-             !this._isDrawingPrimitive &&
-             !this._isSelectingPrimitiveHeight) {
-
-      if (!this._isCtrlPressed && !this._movingOffset) {
-        this._movingOffset = metrics.getMapCoordinates(
-          viewportCoordinates,
-          { y: this._selectedPrimitive.getPosition()[1] }
-        );
-      }
-      else if (this._isCtrlPressed && !this._movingOffset) {
-        this._movingOffset = metrics.getMapCoordinates(
-          viewportCoordinates,
-          {
-            x: this._selectedPrimitive.getPosition()[0],
-            z: this._selectedPrimitive.getPosition()[2]
-          }
-        );
-      }
-      else if (!this._isCtrlPressed) {
-        var currentPosition = this._selectedPrimitive.getPosition();
-        var mapPoint = metrics.getMapCoordinates(
-          viewportCoordinates,
-          { y: currentPosition[1] }
-        );
-        var deltaX = mapPoint[0] - this._movingOffset[0];
-        var deltaZ = mapPoint[2] - this._movingOffset[2];
-        this._selectedPrimitive.setPosition([
-          currentPosition[0] + deltaX,
-          currentPosition[1],
-          currentPosition[2] + deltaZ
-        ]);
-        this._movingOffset = mapPoint;
-      }
-      else {
-        var currentPosition = this._selectedPrimitive.getPosition();
-        var mapPoint = metrics.getMapCoordinates(
-          viewportCoordinates,
-          {
-            x: currentPosition[0],
-            z: currentPosition[2]
-          }
-        );
-        var deltaY = mapPoint[1] - this._movingOffset[1];
-        this._selectedPrimitive.setPosition([
-          currentPosition[0],
-          Math.max(0, currentPosition[1] + deltaY),
-          currentPosition[2]
-        ]);
-        this._movingOffset = mapPoint;
-      }
-    }
-
-    this._lastPointerCoordinates = this._currentPointerCoordinates;
-  };
-
-  ObjectEditorUI.prototype._onMouseDown = function (evt) {
-    this._lastPointerCoordinates = evt.coordinates;
-    var cameraPosition = this._gfxSystem.getCameraPosition();
-    var viewportCoordinates = [
-      this._lastPointerCoordinates[0] - cameraPosition[0],
-      this._lastPointerCoordinates[1] - cameraPosition[1]
-    ];
-
-    if (this._isModifyingPrimitive) {
-      this._selectedPrimitive = this._highlight.getSelection().node;
-      this._isDrawingPrimitive = true;
-      this._startDrawingPoint = this._selectedPrimitive.getPosition();
-    }
-    else if (this._isModifyingPrimitiveHeight) {
-      this._selectedPrimitive = this._highlight.getSelection().node;
-      this._isSelectingPrimitiveHeight = true;
-      this._startDrawingPoint = this._yHandler.getPosition();
     }
   };
 

@@ -110,21 +110,36 @@ define([
   };
 
   RenderSystem.prototype._onStageMouseDown = function (evt) {
+    var screenCoordiantes = [evt.global.x, evt.global.y];
     this.dispatchEvent('mousedown', {
-      coordinates: [evt.global.x, evt.global.y]
+      coordinates: screenCoordiantes,
+      viewportCoordinates: this._getViewportCoordinates(screenCoordiantes)
     });
   };
 
   RenderSystem.prototype._onStageMouseUp = function (evt) {
+    var screenCoordiantes = [evt.global.x, evt.global.y];
     this.dispatchEvent('mouseup', {
-      coordinates: [evt.global.x, evt.global.y]
+      coordinates: screenCoordiantes,
+      viewportCoordinates: this._getViewportCoordinates(screenCoordiantes)
     });
   };
 
   RenderSystem.prototype._onStageMouseMove = function (evt) {
+    var screenCoordiantes = [evt.global.x, evt.global.y];
     this.dispatchEvent('mousemove', {
-      coordinates: [evt.global.x, evt.global.y]
+      coordinates: screenCoordiantes,
+      viewportCoordinates: this._getViewportCoordinates(screenCoordiantes)
     });
+  };
+
+  RenderSystem.prototype._getViewportCoordinates =
+  function (screenCoordiantes) {
+    var cameraPosition = this.getCameraPosition();
+    return [
+      screenCoordiantes[0] - cameraPosition[0],
+      screenCoordiantes[1] - cameraPosition[1]
+    ];
   };
 
   RenderSystem.prototype.Graphics = pixi.Graphics;

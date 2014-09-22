@@ -29,6 +29,7 @@ define([
 
   TextureMode.prototype.onmouseup = function () {
     this._movingTexture = false;
+    this._selectedTexture = null;
     this._control.notifyEndOfFlow('moving-texture');
   };
 
@@ -77,7 +78,6 @@ define([
     this._textureList.insertBefore(li, this._textureList.firstChild);
 
     texture.render.addEventListener('mousedown', function () {
-      li.classList.add('active');
       this._selectedTexture = texture;
     }.bind(this));
     deleteButton.addEventListener('click', function () {
