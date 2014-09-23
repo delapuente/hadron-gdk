@@ -56,12 +56,13 @@ define([
 
   PrimitiveMode.prototype.onmouseup = function () {
     this._movingPrimitive = false;
-    this._selectedPrimitive = null;
+    this._model.selectPrimitive(null);
     this._control.notifyEndOfFlow('moving-primitive');
   };
 
   PrimitiveMode.prototype.onmousemove = function (evt) {
-    if (!this._movingPrimitive || !this._selectedPrimitive) { return; }
+    var selectedPrimitive = this._model.getSelectedPrimitive();
+    if (!this._movingPrimitive || !selectedPrimitive) { return; }
 
     var restrictions;
     if (this._isChangingHeight) {
@@ -83,10 +84,10 @@ define([
     var deltaX = mapPoint[0] - this._lastPointerCoordinates[0];
     var deltaY = mapPoint[1] - this._lastPointerCoordinates[1];
     var deltaZ = mapPoint[2] - this._lastPointerCoordinates[2];
-    var currentPosition = this._selectedPrimitive.getPosition();
-    this._selectedPrimitive.setPosition([
+    var currentPosition = selectedPrimitive.getPosition();
+    selectedPrimitive.setPosition([
       currentPosition[0] + deltaX,
-      currentPosition[1] + deltaY,
+      Math.max(currentPosition[1] + deltaY, 0),
       currentPosition[2] + deltaZ
     ]);
 
@@ -118,7 +119,7 @@ define([
     this._primitiveList.insertBefore(li, this._primitiveList.firstChild);
 
     fragment.render.addEventListener('mousedown', function () {
-      this._selectedPrimitive = fragment.node;
+      this._model.selectPrimitive(fragment.node);
     }.bind(this));
 
     deleteButton.addEventListener('click', function () {

@@ -51,6 +51,10 @@ define([
     this._loop = new Loop({ rootModel: model });
     this._loop.start();
 
+    this._model.addEventListener('primitiveSelected', function (evt) {
+      this._shadow.setPrimitive(evt.primitive);
+    }.bind(this));
+
     //Grid controls
     var selectGridSizeX = root.querySelector('#select-grid-size-x');
     selectGridSizeX.addEventListener('change', this._changeCellSize.bind(this));
@@ -172,7 +176,6 @@ define([
   };
 
   ObjectEditorUI.prototype._showPrimitiveHelpers = function (node) {
-    this._shadow.setPrimitive(node);
     this._boundOnPositionChanged =
       this._boundOnPositionChanged ||
       function onPositionChanged(evt) {

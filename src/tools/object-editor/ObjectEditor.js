@@ -58,6 +58,28 @@ define([
     });
   };
 
+  ObjectEditor.prototype.selectPrimitive = function (primitive) {
+    this._selectedPrimitive = primitive;
+    this.dispatchEvent('primitiveSelected', {
+      primitive: primitive
+    });
+  };
+
+  ObjectEditor.prototype.getSelectedPrimitive = function () {
+    return this._selectedPrimitive;
+  };
+
+  ObjectEditor.prototype.selectTexture = function (primitive) {
+    this._selectedTexture = texture;
+    this.dispatchEvent('textureSelected', {
+      texture: texture
+    });
+  };
+
+  ObjectEditor.prototype.getSelectedTexture = function () {
+    return this._selectedTexture;
+  };
+
   ObjectEditor.prototype.setGridSize = function (newDimensions) {
     this._grid.setDimensions(newDimensions);
   };

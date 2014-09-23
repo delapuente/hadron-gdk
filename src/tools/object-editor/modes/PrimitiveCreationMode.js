@@ -38,6 +38,7 @@ define([
         break;
       case 'SETTING_HEIGHT':
         this._creatingPrimitiveStage = 'FINISHED';
+        this._model.selectPrimitive(null);
         this._control.notifyEndOfFlow('creating-primitive');
         break;
     }
