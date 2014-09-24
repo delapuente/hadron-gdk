@@ -58,24 +58,13 @@ define([
     this._loop.start();
 
     this._model.addEventListener(
-      'primitiveSelected',
-      this._onPrimitiveSelected.bind(this)
-    );
-
-    this._model.addEventListener(
       'primitiveFocusChanged',
       this._onPrimitiveFocused.bind(this)
     );
 
-    this._xzHandler.addEventListener(
-      'stateChanged',
-      this._onXZHandler.bind(this)
-    );
-
-    this._yHandler.addEventListener(
-      'stateChanged',
-      this._onYHandler.bind(this)
-    );
+    var boundOnHandler = this._onHandler.bind(this);
+    this._xzHandler.addEventListener('stateChanged', boundOnHandler);
+    this._yHandler.addEventListener('stateChanged', boundOnHandler);
 
     //Grid controls
     var selectGridSizeX = root.querySelector('#select-grid-size-x');
@@ -84,26 +73,18 @@ define([
     selectGridSizeZ.addEventListener('change', this._changeCellSize.bind(this));
   }
 
-  ObjectEditorUI.prototype._onYHandler = function (evt) {
-    if (evt.isEnabled) {
-      this._selectMode(this._heightModificationMode);
+  ObjectEditorUI.prototype._onHandler = function (evt) {
+    switch (evt.target) {
+      case this._yHandler:
+        this._selectMode(this._heightModificationMode);
+        break;
+      case this._xzHandler:
+        this._selectMode(this._plantModificationMode);
+        break;
+      default:
+        this._selectMode(this._primitiveMode);
+        break;
     }
-    else {
-      this._selectMode(this._primitiveMode);
-    }
-  };
-
-  ObjectEditorUI.prototype._onXZHandler = function (evt) {
-    if (evt.isEnabled) {
-      this._selectMode(this._plantModificationMode);
-    }
-    else {
-      this._selectMode(this._primitiveMode);
-    }
-  };
-
-  ObjectEditorUI.prototype._onPrimitiveSelected = function (evt) {
-    this._shadow.setPrimitive(evt.primitive);
   };
 
   ObjectEditorUI.prototype._onPrimitiveFocused = function (evt) {
@@ -111,6 +92,9 @@ define([
 
     var primitive = evt.primitive;
     var lastPrimitive = evt.lastPrimitive;
+
+    this._shadow.setPrimitive(primitive);
+
     this._xzHandler.render.graphic.visible = false;
     this._yHandler.render.graphic.visible = false;
     this._boundOnPrimitiveChanged =
@@ -189,7 +173,8 @@ define([
     );
     this._plantModificationMode = new PlantModificationMode(
       this,
-      this._model
+      this._model,
+      this._xzHandler
     );
 
     this._textureTools.addEventListener('click', function () {
@@ -270,78 +255,6 @@ define([
     var sizeZ = parseInt(this._root.querySelector('#select-grid-size-z').value);
     if (isNaN(sizeX) || isNaN(sizeZ)) { return; }
     this._model.grid.setCellSize([sizeX, sizeZ]);
-  };
-
-  ObjectEditorUI.prototype._highlightEntity = function (entity) {
-    if (this._highlighedEntity) {
-      this._graphicEntities[this._highlighedEntity.id]
-        .removeChild(this._highlight.render.graphic);
-    }
-    this._highlighedEntity = entity;
-    this._highlight.setSelection(entity);
-    if (entity) {
-      this._graphicEntities[entity.id].addChild(this._highlight.render.graphic);
-    }
-  };
-
-  ObjectEditorUI.prototype._showPrimitiveHelpers = function (node) {
-    this._boundOnPositionChanged =
-      this._boundOnPositionChanged ||
-      function onPositionChanged(evt) {
-        var position = evt.target.getPosition();
-        var dimensions = evt.target.getDimensions();
-        position[0] += dimensions[0];
-        position[2] += dimensions[2];
-        this._xzHandler.setPosition(position);
-      }.bind(this);
-
-    // XXX: As a side effect of how we redraw the primitive (by setting the
-    // position even if it is not changing), we end with an always updated
-    // y handler.
-    this._boundOnPositionChangedForHeight =
-      this._boundOnPositionChangedForHeight ||
-      function onPositionChangedForHeight(evt) {
-        var position = evt.target.getPosition();
-        var dimensions = evt.target.getDimensions();
-        position[0] += dimensions[0];
-        position[1] += dimensions[1];
-        position[2] += dimensions[2];
-        this._yHandler.setPosition(position);
-      }.bind(this);
-
-    if (node) {
-      this._handlerLayer.addChild(this._xzHandler.render.graphic);
-      this._handlerLayer.addChild(this._yHandler.render.graphic);
-      var hoverPrimitive = this._highlight.getSelection().node;
-      hoverPrimitive.addEventListener(
-        'positionChanged',
-        this._boundOnPositionChanged
-      );
-      hoverPrimitive.addEventListener(
-        'positionChanged',
-        this._boundOnPositionChangedForHeight
-      );
-      hoverPrimitive.addEventListener(
-        'dimensionsChanged',
-        this._boundOnPositionChangedForHeight
-      );
-      this._boundOnPositionChanged({
-        target: hoverPrimitive
-      });
-      this._boundOnPositionChangedForHeight({
-        target: hoverPrimitive
-      });
-    }
-    else {
-      if (this._handlerLayer.children
-          .indexOf(this._xzHandler.render.graphic) > -1) {
-        this._handlerLayer.removeChild(this._xzHandler.render.graphic);
-      }
-      if (this._handlerLayer.children
-          .indexOf(this._yHandler.render.graphic) > -1) {
-        this._handlerLayer.removeChild(this._yHandler.render.graphic);
-      }
-    }
   };
 
   ObjectEditorUI.prototype._render = function (isPostCall, alpha) {
