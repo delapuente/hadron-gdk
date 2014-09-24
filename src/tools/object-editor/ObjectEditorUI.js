@@ -8,11 +8,14 @@ define([
   'tools/object-editor/modes/TextureMode',
   'tools/object-editor/modes/PrimitiveMode',
   'tools/object-editor/modes/PrimitiveCreationMode',
+  'tools/object-editor/modes/HeightModificationMode',
+  'tools/object-editor/modes/PlantModificationMode',
   'tools/helpers/selections/SimpleSelector',
   'tools/helpers/surfaces/Shadow',
   'tools/helpers/handlers/Handler'
 ], function (GfxSystem, strongforce, metrics, Isospace, CuboidFragment,
-             TextureMode, PrimitiveMode, PrimitiveCreationMode, SimpleSelector,
+             TextureMode, PrimitiveMode, PrimitiveCreationMode,
+             HeightModificationMode, PlantModificationMode, SimpleSelector,
              Shadow, Handler) {
   'use strict';
 
@@ -29,7 +32,7 @@ define([
     this._textureLayer = this._gfxSystem.newLayer('texture-layer');
     this._isospaceLayer = this._gfxSystem.newLayer('isospace-layer');
     this._handlerLayer = this._gfxSystem.newLayer('handler-layer');
-    this._isospaceLayer.alpha = 0.5;
+    this._isospaceLayer.alpha = 0.8;
 
     this._isospace = new Isospace(this._isospaceLayer);
     this._highlight = new SimpleSelector();
@@ -39,6 +42,9 @@ define([
 
     this._gridLayer.addChild(model.grid.render.graphic);
     this._gridLayer.addChild(this._shadow.render.graphic);
+
+    this._handlerLayer.addChild(this._xzHandler.render.graphic);
+    this._handlerLayer.addChild(this._yHandler.render.graphic);
 
     var placeholder = root.querySelector('#canvas-placeholder');
     placeholder.parentNode.replaceChild(this._gfxSystem.view, placeholder);
@@ -51,9 +57,25 @@ define([
     this._loop = new Loop({ rootModel: model });
     this._loop.start();
 
-    this._model.addEventListener('primitiveSelected', function (evt) {
-      this._shadow.setPrimitive(evt.primitive);
-    }.bind(this));
+    this._model.addEventListener(
+      'primitiveSelected',
+      this._onPrimitiveSelected.bind(this)
+    );
+
+    this._model.addEventListener(
+      'primitiveFocusChanged',
+      this._onPrimitiveFocused.bind(this)
+    );
+
+    this._xzHandler.addEventListener(
+      'stateChanged',
+      this._onXZHandler.bind(this)
+    );
+
+    this._yHandler.addEventListener(
+      'stateChanged',
+      this._onYHandler.bind(this)
+    );
 
     //Grid controls
     var selectGridSizeX = root.querySelector('#select-grid-size-x');
@@ -61,6 +83,78 @@ define([
     var selectGridSizeZ = root.querySelector('#select-grid-size-z');
     selectGridSizeZ.addEventListener('change', this._changeCellSize.bind(this));
   }
+
+  ObjectEditorUI.prototype._onYHandler = function (evt) {
+    if (evt.isEnabled) {
+      this._selectMode(this._heightModificationMode);
+    }
+    else {
+      this._selectMode(this._primitiveMode);
+    }
+  };
+
+  ObjectEditorUI.prototype._onXZHandler = function (evt) {
+    if (evt.isEnabled) {
+      this._selectMode(this._plantModificationMode);
+    }
+    else {
+      this._selectMode(this._primitiveMode);
+    }
+  };
+
+  ObjectEditorUI.prototype._onPrimitiveSelected = function (evt) {
+    this._shadow.setPrimitive(evt.primitive);
+  };
+
+  ObjectEditorUI.prototype._onPrimitiveFocused = function (evt) {
+    if (this._currentFlow === 'moving-primitive') { return; }
+
+    var primitive = evt.primitive;
+    var lastPrimitive = evt.lastPrimitive;
+    this._xzHandler.render.graphic.visible = false;
+    this._yHandler.render.graphic.visible = false;
+    this._boundOnPrimitiveChanged =
+      this._boundOnPrimitiveChanged ||
+      this._onPrimitiveChanged.bind(this);
+    if (lastPrimitive) {
+      lastPrimitive.removeEventListener(
+        'positionChanged', this._boundOnPrimitiveChanged);
+      lastPrimitive.removeEventListener(
+        'dimensionsChanged', this._boundOnPrimitiveChanged);
+    }
+    if (primitive) {
+      primitive.addEventListener(
+        'positionChanged', this._boundOnPrimitiveChanged);
+      primitive.addEventListener(
+        'dimensionsChanged', this._boundOnPrimitiveChanged);
+      this._xzHandler.render.graphic.visible = true;
+      this._yHandler.render.graphic.visible = true;
+      this._placeHandlers(primitive);
+    }
+  };
+
+  ObjectEditorUI.prototype._onPrimitiveChanged = function (evt) {
+    this._placeHandlers(evt.target);
+  };
+
+  ObjectEditorUI.prototype._placeHandlers = function (primitive) {
+      var position = primitive.getPosition();
+      var dimensions = primitive.getDimensions();
+      var yHandlerPosition = [
+        position[0] + dimensions[0],
+        position[1] + dimensions[1],
+        position[2] + dimensions[2]
+      ];
+      var xzHandlerPosition = [
+        position[0] + dimensions[0],
+        position[1],
+        position[2] + dimensions[2]
+      ];
+      this._xzHandler.render.graphic.visible = true;
+      this._yHandler.render.graphic.visible = true;
+      this._xzHandler.setPosition(xzHandlerPosition);
+      this._yHandler.setPosition(yHandlerPosition);
+  };
 
   ObjectEditorUI.prototype._setupControlModes = function () {
     this._currentMode = null;
@@ -85,6 +179,15 @@ define([
       this._isospaceLayer
     );
     this._primitiveCreationMode = new PrimitiveCreationMode(
+      this,
+      this._model
+    );
+    this._heightModificationMode = new HeightModificationMode(
+      this,
+      this._model,
+      this._yHandler
+    );
+    this._plantModificationMode = new PlantModificationMode(
       this,
       this._model
     );
@@ -144,14 +247,20 @@ define([
   ObjectEditorUI.prototype.notifyStartOfFlow = function (flowName) {
     console.log('Starting flow ' + flowName);
     this._isUnsafe = true;
+    this._currentFlow = flowName;
   };
 
   ObjectEditorUI.prototype.notifyEndOfFlow = function (flowName) {
     console.log('Ending flow ' + flowName);
     this._isUnsafe = false;
+    this._currentFlow = null;
 
     if (flowName === 'creating-primitive') {
       this._togglePrimitive.checked = false;
+      this._selectMode(this._primitiveMode);
+    }
+
+    if (flowName === 'modify-primitive-height' && !this._yHandler.isEnabled()) {
       this._selectMode(this._primitiveMode);
     }
   };

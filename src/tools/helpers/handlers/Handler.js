@@ -32,21 +32,6 @@ define([
     });
   };
 
-  Handler.prototype.testPosition = function (position) {
-    return this.testScreenPosition(metrics.getScreenCoordinates(position));
-  };
-
-  Handler.prototype.testScreenPosition = function (screenPosition) {
-    var pointA = screenPosition;
-    var pointB = this._screenPosition;
-    var isNearEnough = Math.sqrt(
-      Math.pow(pointA[0] - pointB[0], 2) +
-      Math.pow(pointA[1] - pointB[1], 2)
-    ) < this._threshold;
-    this.setEnabled(isNearEnough);
-    return isNearEnough;
-  };
-
   Handler.prototype.setEnabled = function (enabled) {
     this._enabled = enabled;
     this.dispatchEvent('stateChanged', {

@@ -118,6 +118,10 @@ define([
     li.appendChild(deleteButton);
     this._primitiveList.insertBefore(li, this._primitiveList.firstChild);
 
+    fragment.render.addEventListener('mouseover', function () {
+      this._model.focusPrimitive(fragment.node);
+    }.bind(this));
+
     fragment.render.addEventListener('mousedown', function () {
       this._model.selectPrimitive(fragment.node);
     }.bind(this));

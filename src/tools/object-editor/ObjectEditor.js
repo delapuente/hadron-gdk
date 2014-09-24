@@ -65,6 +65,19 @@ define([
     });
   };
 
+  ObjectEditor.prototype.focusPrimitive = function (primitive) {
+    var lastFocused = this._focusedPrimitive;
+    this._focusedPrimitive = primitive;
+    this.dispatchEvent('primitiveFocusChanged', {
+      lastPrimitive: lastFocused,
+      primitive: primitive
+    });
+  };
+
+  ObjectEditor.prototype.getFocusedPrimitive = function () {
+    return this._focusedPrimitive;
+  };
+
   ObjectEditor.prototype.getSelectedPrimitive = function () {
     return this._selectedPrimitive;
   };

@@ -59,7 +59,7 @@ define([
       return [
         xPlane,
         yPlane,
-        y + yplane - x/2
+        y + yPlane - x/2
       ];
     },
 
