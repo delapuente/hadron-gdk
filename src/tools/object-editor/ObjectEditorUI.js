@@ -92,12 +92,13 @@ define([
       }
     }.bind(this));
 
-    // Primitive mode actication
+    // Primitive mode activation
     this._primitiveTools.addEventListener('click', function () {
       console.log('Primitive mode selected');
       this._selectMode(this._primitiveMode);
     }.bind(this), true);
 
+    // Primitive modification activation
     var boundOnHandler = this._onHandler.bind(this);
     this._xzHandler.addEventListener('stateChanged', boundOnHandler);
     this._yHandler.addEventListener('stateChanged', boundOnHandler);
@@ -110,13 +111,21 @@ define([
   }
 
   ObjectEditorUI.prototype._onHandler = function (evt) {
-    switch (evt.target) {
-      case this._yHandler:
-        break;
-      case this._xzHandler:
-        break;
-      default:
-        break;
+    var inPrimitiveMode = this._currentMode === this._primitiveMode ||
+                          this._currentMode === this._heightModificationMode ||
+                          this._currentMode === this._plantModificationMode;
+    if (!inPrimitiveMode) { return; }
+
+    var state = evt.state;
+    if (state !== 'NON_READY') {
+      console.log('Modifying primitive mode selected');
+      this._selectMode(evt.target === this._yHandler ?
+                       this._heightModificationMode :
+                       this._plantModificationMode);
+    }
+    else {
+      console.log('Primitive mode selected');
+      this._selectMode(this._primitiveMode);
     }
   };
 
@@ -257,6 +266,11 @@ define([
       if (this._togglePrimitive.checked) {
         this._togglePrimitive.click();
       }
+    }
+    if (flowName.startsWith('modify-primitive-') &&
+        this._xzHandler.getState() === 'NON_READY' &&
+        this._yHandler.getState() === 'NON_READY') {
+      this._selectMode(this._primitiveMode);
     }
   };
 

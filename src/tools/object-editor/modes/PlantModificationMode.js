@@ -31,9 +31,7 @@ define([
   };
 
   PlantModificationMode.prototype.onmousemove = function (evt) {
-    if (!this._isChangingPlant ||
-        !this._selectedPrimitive ||
-        !this._handler.isEnabled()) { return; }
+    if (!this._isChangingPlant || !this._selectedPrimitive) { return; }
 
     var handlerPosition = this._handler.getPosition();
     var mapPoint = metrics.getMapCoordinates(

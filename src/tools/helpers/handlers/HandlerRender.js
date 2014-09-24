@@ -12,12 +12,7 @@ define([
     gfxSystem = GfxSystem.getSystem();
     this.graphic = new gfxSystem.Graphics();
     this.graphic.interactive = true;
-    this.graphic.mouseover = function () {
-      handler.setEnabled(true);
-    };
-    this.graphic.mouseout = function () {
-      handler.setEnabled(false);
-    };
+
     this._handler = handler;
     this._handler.addEventListener(
       'directionsSet',
@@ -31,6 +26,16 @@ define([
       'stateChanged',
       this._onStateChanged.bind(this)
     );
+
+    this.graphic.mouseover = function () {
+      handler.setState('READY');
+    };
+    this.graphic.mouseout = function () {
+      handler.setState('NON_READY');
+    };
+    this.graphic.mousedown = function () {
+      handler.setState('ACTIVE');
+    };
   }
   S.theClass(HandlerRender).inheritsFrom(Render);
 
@@ -38,7 +43,8 @@ define([
   HandlerRender.prototype.HANDLER_ENABLED = 0x00D000;
 
   HandlerRender.prototype._onDirectionsSet = function (evt) {
-    this._drawHandler(evt.directions, evt.target.isEnabled());
+    var isEnabled = evt.state !== 'NON_READY';
+    this._drawHandler(evt.directions, isEnabled);
   };
 
   HandlerRender.prototype._onPositionChanged = function (evt) {
@@ -47,7 +53,7 @@ define([
 
   HandlerRender.prototype._onStateChanged = function (evt) {
     var directions = evt.target.getDirections();
-    var isEnabled = evt.isEnabled;
+    var isEnabled = evt.state !== 'NON_READY';
     this._drawHandler(directions, isEnabled);
   };
 

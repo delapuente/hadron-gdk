@@ -31,9 +31,7 @@ define([
   };
 
   HeightModificationMode.prototype.onmousemove = function (evt) {
-    if (!this._isChangingHeight ||
-        !this._selectedPrimitive ||
-        !this._handler.isEnabled()) { return; }
+    if (!this._isChangingHeight || !this._selectedPrimitive) { return; }
 
     var handlerPosition = this._handler.getPosition();
     var mapPoint = metrics.getMapCoordinates(

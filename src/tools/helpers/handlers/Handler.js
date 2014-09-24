@@ -13,6 +13,7 @@ define([
     this._threshold = 10;
     this._setDirections(directions);
     this.setPosition([0, 0, 0]);
+    this.setState('NON_READY'); // XXX: READY and ACTIVE are the others.
   }
   S.theClass(Handler).inheritsFrom(Model);
 
@@ -32,17 +33,17 @@ define([
     });
   };
 
-  Handler.prototype.setEnabled = function (enabled) {
-    this._enabled = enabled;
+  Handler.prototype.setState = function (state) {
+    this._state = state;
     this.dispatchEvent('stateChanged', {
-      isEnabled: enabled,
+      state: state,
       position: this.getPosition(),
       screenPosition: this._screenPosition.slice(0)
     });
   };
 
-  Handler.prototype.isEnabled = function () {
-    return this._enabled;
+  Handler.prototype.getState = function () {
+    return this._state;
   };
 
   Handler.prototype.getDirections = function () {
