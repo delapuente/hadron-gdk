@@ -52,6 +52,12 @@ define([
   };
 
   ObjectEditor.prototype.deletePrimitive = function (primitive) {
+    if (this._focusedPrimitive === primitive) {
+      this.focusPrimitive(null);
+    }
+    if (this._selectedPrimitive === primitive) {
+      this.selectPrimitive(null);
+    }
     this.primitives.splice(this.primitives.indexOf(primitive), 1);
     this.dispatchEvent('primitiveDeleted', {
       node: primitive

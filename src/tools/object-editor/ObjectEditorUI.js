@@ -76,13 +76,11 @@ define([
     );
 
     this._textureTools.addEventListener('click', function () {
-      console.log('Texture mode selected');
       this._selectMode(this._textureControlMode);
     }.bind(this), true);
 
     // Creation mode activation
     this._togglePrimitive.addEventListener('click', function (evt) {
-      console.log('New primitive mode enabled');
       var toggle = evt.target;
       if (toggle.checked) {
         this._selectMode(this._primitiveCreationMode);
@@ -94,7 +92,6 @@ define([
 
     // Primitive mode activation
     this._primitiveTools.addEventListener('click', function () {
-      console.log('Primitive mode selected');
       this._selectMode(this._primitiveMode);
     }.bind(this), true);
 
@@ -118,13 +115,11 @@ define([
 
     var state = evt.state;
     if (state !== 'NON_READY') {
-      console.log('Modifying primitive mode selected');
       this._selectMode(evt.target === this._yHandler ?
                        this._heightModificationMode :
                        this._plantModificationMode);
     }
     else {
-      console.log('Primitive mode selected');
       this._selectMode(this._primitiveMode);
     }
   };

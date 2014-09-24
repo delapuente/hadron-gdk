@@ -5,13 +5,13 @@ define([
 ], function (S, metrics) {
   'use strict';
 
-  function PrimitiveMode(control, model) {
+  function PrimitiveCreationMode(control, model) {
     this._control = control;
     this._model = model;
     this._creatingPrimitiveStage = 'FINISHED';
   }
 
-  PrimitiveMode.prototype.onmousedown = function (evt) {
+  PrimitiveCreationMode.prototype.onmousedown = function (evt) {
     switch (this._creatingPrimitiveStage) {
       case 'FINISHED':
         this._control.notifyStartOfFlow('creating-primitive');
@@ -29,7 +29,7 @@ define([
     }
   };
 
-  PrimitiveMode.prototype.onmouseup = function (evt) {
+  PrimitiveCreationMode.prototype.onmouseup = function (evt) {
     switch (this._creatingPrimitiveStage) {
       case 'SETTING_PLANT':
         var mapPoint = metrics.getMapCoordinates(evt.viewportCoordinates);
@@ -38,13 +38,12 @@ define([
         break;
       case 'SETTING_HEIGHT':
         this._creatingPrimitiveStage = 'FINISHED';
-        this._model.selectPrimitive(null);
         this._control.notifyEndOfFlow('creating-primitive');
         break;
     }
   };
 
-  PrimitiveMode.prototype.onmousemove = function (evt) {
+  PrimitiveCreationMode.prototype.onmousemove = function (evt) {
     var dimensions;
     switch (this._creatingPrimitiveStage) {
       case 'SETTING_PLANT':
@@ -79,5 +78,5 @@ define([
     }
   };
 
-  return PrimitiveMode;
+  return PrimitiveCreationMode;
 });

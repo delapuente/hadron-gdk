@@ -113,7 +113,7 @@ define([
     var deleteButton = document.createElement('button');
     deleteButton.textContent = 'delete';
     deleteButton.type = 'button';
-    li.dataset.id = fragment.id;
+    li.dataset.id = fragment.node.id;
     li.textContent = 'primitive-' + this.PRIMITIVE_ID++;
     li.appendChild(deleteButton);
     this._primitiveList.insertBefore(li, this._primitiveList.firstChild);
@@ -127,7 +127,7 @@ define([
     }.bind(this));
 
     deleteButton.addEventListener('click', function () {
-      this._model.deletePrimitive(fragment);
+      this._model.deletePrimitive(fragment.node);
     }.bind(this));
   };
 
