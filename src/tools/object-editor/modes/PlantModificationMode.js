@@ -16,7 +16,13 @@ define([
     this._control.notifyStartOfFlow('modify-primitive-plant');
     this._selectedPrimitive = this._model.getFocusedPrimitive();
     this._isChangingPlant = true;
-    this._lastPointerCoordinates = this._handler.getPosition();
+
+    var handlerPosition = this._handler.getPosition();
+    this._lastPointerCoordinates =
+      metrics.getMapCoordinates(
+        evt.viewportCoordinates,
+        { y: handlerPosition[1]  }
+      );
   };
 
   PlantModificationMode.prototype.onmouseup = function () {

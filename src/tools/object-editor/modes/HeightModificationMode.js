@@ -16,7 +16,13 @@ define([
     this._control.notifyStartOfFlow('modify-primitive-height');
     this._selectedPrimitive = this._model.getFocusedPrimitive();
     this._isChangingHeight = true;
-    this._lastPointerCoordinates = this._handler.getPosition();
+
+    var handlerPosition = this._handler.getPosition();
+    this._lastPointerCoordinates =
+      metrics.getMapCoordinates(
+        evt.viewportCoordinates,
+        { x: handlerPosition[0], z: handlerPosition[2] }
+      );
   };
 
   HeightModificationMode.prototype.onmouseup = function () {
