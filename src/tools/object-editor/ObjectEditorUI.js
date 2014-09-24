@@ -51,6 +51,9 @@ define([
 
     this._root = root;
     this._textureTools = this._root.querySelector('#texture-tools');
+    this._primitiveTools = this._root.querySelector('#primitive-tools');
+    this._togglePrimitive =
+      this._primitiveTools.querySelector('#toggle-primitive-mode');
 
     this._model = model;
     this._model.render = this._render.bind(this);
@@ -75,6 +78,24 @@ define([
     this._textureTools.addEventListener('click', function () {
       console.log('Texture mode selected');
       this._selectMode(this._textureControlMode);
+    }.bind(this), true);
+
+    // Creation mode activation
+    this._togglePrimitive.addEventListener('click', function (evt) {
+      console.log('New primitive mode enabled');
+      var toggle = evt.target;
+      if (toggle.checked) {
+        this._selectMode(this._primitiveCreationMode);
+      }
+      else {
+        this._selectMode(this._primitiveMode);
+      }
+    }.bind(this));
+
+    // Primitive mode actication
+    this._primitiveTools.addEventListener('click', function () {
+      console.log('Primitive mode selected');
+      this._selectMode(this._primitiveMode);
     }.bind(this), true);
 
     var boundOnHandler = this._onHandler.bind(this);
@@ -156,10 +177,6 @@ define([
     this._currentMode = null;
     this._isUnsafe = false;
 
-    this._primitiveTools = this._root.querySelector('#primitive-tools');
-    this._togglePrimitive =
-      this._primitiveTools.querySelector('#toggle-primitive-mode');
-
     this._textureControlMode = new TextureMode(
       this,
       this._textureTools,
@@ -187,14 +204,6 @@ define([
       this._model,
       this._xzHandler
     );
-
-    this._primitiveTools.addEventListener('click', function () {
-      console.log('Primitive mode selected');
-    }.bind(this), true);
-
-    this._togglePrimitive.addEventListener('click', function () {
-      console.log('New primitive mode enabled');
-    }.bind(this));
 
     this._redirectToModes();
   };
@@ -243,6 +252,12 @@ define([
     console.log('Ending flow ' + flowName);
     this._isUnsafe = false;
     this._currentFlow = null;
+
+    if (flowName === 'creating-primitive') {
+      if (this._togglePrimitive.checked) {
+        this._togglePrimitive.click();
+      }
+    }
   };
 
   ObjectEditorUI.prototype._changeCellSize = function () {
