@@ -50,6 +50,8 @@ define([
     placeholder.parentNode.replaceChild(this._gfxSystem.view, placeholder);
 
     this._root = root;
+    this._textureTools = this._root.querySelector('#texture-tools');
+
     this._model = model;
     this._model.render = this._render.bind(this);
     this._setupControlModes();
@@ -61,6 +63,19 @@ define([
       'primitiveFocusChanged',
       this._onPrimitiveFocused.bind(this)
     );
+
+    // Texture mode activation
+    this._model.addEventListener(
+      'textureAdded',
+      function () {
+        this._selectMode(this._textureControlMode);
+      }.bind(this)
+    );
+
+    this._textureTools.addEventListener('click', function () {
+      console.log('Texture mode selected');
+      this._selectMode(this._textureControlMode);
+    }.bind(this), true);
 
     var boundOnHandler = this._onHandler.bind(this);
     this._xzHandler.addEventListener('stateChanged', boundOnHandler);
@@ -76,13 +91,10 @@ define([
   ObjectEditorUI.prototype._onHandler = function (evt) {
     switch (evt.target) {
       case this._yHandler:
-        this._selectMode(this._heightModificationMode);
         break;
       case this._xzHandler:
-        this._selectMode(this._plantModificationMode);
         break;
       default:
-        this._selectMode(this._primitiveMode);
         break;
     }
   };
@@ -144,7 +156,6 @@ define([
     this._currentMode = null;
     this._isUnsafe = false;
 
-    this._textureTools = this._root.querySelector('#texture-tools');
     this._primitiveTools = this._root.querySelector('#primitive-tools');
     this._togglePrimitive =
       this._primitiveTools.querySelector('#toggle-primitive-mode');
@@ -177,19 +188,12 @@ define([
       this._xzHandler
     );
 
-    this._textureTools.addEventListener('click', function () {
-      console.log('Texture mode selected');
-      return this._selectMode(this._textureControlMode);
-    }.bind(this), true);
-
     this._primitiveTools.addEventListener('click', function () {
       console.log('Primitive mode selected');
-      return this._selectMode(this._primitiveMode);
     }.bind(this), true);
 
     this._togglePrimitive.addEventListener('click', function () {
       console.log('New primitive mode enabled');
-      return this._selectMode(this._primitiveCreationMode);
     }.bind(this));
 
     this._redirectToModes();
@@ -239,15 +243,6 @@ define([
     console.log('Ending flow ' + flowName);
     this._isUnsafe = false;
     this._currentFlow = null;
-
-    if (flowName === 'creating-primitive') {
-      this._togglePrimitive.checked = false;
-      this._selectMode(this._primitiveMode);
-    }
-
-    if (flowName === 'modify-primitive-height' && !this._yHandler.isEnabled()) {
-      this._selectMode(this._primitiveMode);
-    }
   };
 
   ObjectEditorUI.prototype._changeCellSize = function () {
