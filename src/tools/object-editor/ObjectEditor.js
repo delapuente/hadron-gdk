@@ -31,6 +31,7 @@ define([
     this.dispatchEvent('textureAdded', {
       texture: newTexture
     });
+    return newTexture;
   };
 
   ObjectEditor.prototype.deleteTexture = function (texture) {
@@ -131,6 +132,19 @@ define([
     return JSON.stringify(simple);
   };
 
+  ObjectEditor.prototype.import = function (simple) {
+    this.clear();
+
+    simple.textures.forEach(function (texture) {
+      var newTexture = this.addNewTexture(texture.data, texture.name);
+      newTexture.setPosition(texture.position);
+    }.bind(this));
+
+    simple.nodes.forEach(function (primitive) {
+      this.addNewPrimitive(primitive.dimensions, primitive.position);
+    }.bind(this));
+  };
+
   ObjectEditor.prototype.clear = function () {
     var textures = this.textures.slice(0);
     textures.forEach(function (texture) {
@@ -141,6 +155,7 @@ define([
       this.deletePrimitive(primitive);
     }.bind(this));
   };
+
 
   return ObjectEditor;
 });

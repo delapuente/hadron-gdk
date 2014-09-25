@@ -117,6 +117,17 @@ define([
         this._root.querySelector('#import-input').click();
       }.bind(this));
 
+    this._root.querySelector('#import-input')
+      .addEventListener('change', function (evt) {
+        var file = evt.target.files[0];
+        var fileReader = new FileReader();
+        fileReader.onloadend = function () {
+          var stream = fileReader.result;
+          this._model.import(JSON.parse(stream));
+        }.bind(this);
+        fileReader.readAsText(file);
+      }.bind(this));
+
     this._root.querySelector('#new-button')
       .addEventListener('click', function () {
         this._model.clear();
