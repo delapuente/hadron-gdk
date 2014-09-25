@@ -126,6 +126,7 @@ define([
           this._model.import(JSON.parse(stream));
         }.bind(this);
         fileReader.readAsText(file);
+        evt.target.value = '';
       }.bind(this));
 
     this._root.querySelector('#new-button')
