@@ -96,14 +96,17 @@ define([
 
   PrimitiveMode.prototype._addPrimitive = function (evt) {
     var fragment = new CuboidFragment(evt.node);
+    // XXX: The assymetry with deletePrimitive is intended. When adding a node
+    // it should be split in convex fragments for isometric sorting but when
+    // deleting, the node is removed completely.
     this._isospace.addFragment(fragment);
     this._updatePrimitiveList(fragment);
   };
 
   PrimitiveMode.prototype._deletePrimitive = function (evt) {
-    var fragment = evt.node;
-    this._isospace.removeFragment(fragment);
-    this._removeFromPrimitiveList(fragment);
+    // XXX: See _addPrimitive
+    this._isospace.removeNode(evt.node);
+    this._removeFromPrimitiveList(evt.node);
   };
 
   PrimitiveMode.prototype.PRIMITIVE_ID = 1;

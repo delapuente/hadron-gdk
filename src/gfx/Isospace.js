@@ -46,6 +46,14 @@ define([
     this._dispatchIsospaceChanged();
   };
 
+  Isospace.prototype.removeNode = function (node) {
+    var fragmentGraph = this.graph;
+    this.graph.nodes = fragmentGraph.nodes.filter(function (fragment) {
+      return fragment.node !== node;
+    });
+    this._dispatchIsospaceChanged();
+  };
+
   Isospace.prototype._onFragmentChanged = function () {
     this._dispatchIsospaceChanged();
   };
