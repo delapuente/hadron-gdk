@@ -105,7 +105,30 @@ define([
     selectGridSizeX.addEventListener('change', this._changeCellSize.bind(this));
     var selectGridSizeZ = root.querySelector('#select-grid-size-z');
     selectGridSizeZ.addEventListener('change', this._changeCellSize.bind(this));
+
+    // Export and import
+    this._root.querySelector('#export-button')
+      .addEventListener('click', function () {
+        this._download(this._model.serializeObject());
+      }.bind(this));
+
+    this._root.querySelector('#import-button')
+      .addEventListener('click', function () {
+        this._root.querySelector('#import-input').click();
+      }.bind(this));
+
+    this._root.querySelector('#new-button')
+      .addEventListener('click', function () {
+        this._model.clear();
+      }.bind(this));
   }
+
+  ObjectEditorUI.prototype._download = function (stream) {
+    var download = this._root.querySelector('#download-object');
+    download.href = 'data:application/octet-stream,' +
+                    encodeURIComponent(stream);
+    download.click();
+  };
 
   ObjectEditorUI.prototype._onHandler = function (evt) {
     var inPrimitiveMode = this._currentMode === this._primitiveMode ||

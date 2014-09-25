@@ -103,5 +103,44 @@ define([
     this._grid.setDimensions(newDimensions);
   };
 
+  ObjectEditor.prototype.serializeObject = function ( ) {
+    var simple = {
+      nodes:       [],
+      textures:    [],
+      __class__:   'HObject',
+      __version__: '1.0'
+    };
+
+    // Save nodes
+    this.primitives.forEach(function (primitive) {
+      simple.nodes.push({
+        position: primitive.getPosition(),
+        dimensions: primitive.getDimensions()
+      });
+    });
+
+    // Save textures
+    this.textures.forEach(function (texture) {
+      simple.textures.push({
+        name: texture.name,
+        position: texture.getPosition(),
+        data: texture.getSourceData()
+      });
+    });
+
+    return JSON.stringify(simple);
+  };
+
+  ObjectEditor.prototype.clear = function () {
+    var textures = this.textures.slice(0);
+    textures.forEach(function (texture) {
+      this.deleteTexture(texture);
+    }.bind(this));
+    var primitives = this.primitives.slice(0);
+    primitives.forEach(function (primitive) {
+      this.deletePrimitive(primitive);
+    }.bind(this));
+  };
+
   return ObjectEditor;
 });

@@ -34,5 +34,14 @@ define([
     });
   };
 
+  Texture.prototype.getSourceData = function () {
+    var img = this.render.graphic.texture.baseTexture.source;
+    var buffer = document.createElement('canvas');
+    buffer.width = img.width;
+    buffer.height = img.height;
+    buffer.getContext('2d').drawImage(img, 0, 0);
+    return buffer.toDataURL();
+  };
+
   return Texture;
 });

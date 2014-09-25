@@ -10,7 +10,7 @@
       body { font-size: 2rem; }
 
       canvas {
-        float: left;
+        /*float: left;*/
         margin-right: 1rem;
       }
 
@@ -31,6 +31,14 @@
   <body>
     <div id="canvas-placeholder"></div>
     <section>
+      <fieldset>
+        <legend>File</legend>
+        <button id="export-button">Export</button>
+        <button id="import-button">Import</button>
+        <button id="new-button">New</button>
+        <a id="download-object" download="hadron-object.hob" href="#" hidden></a>
+        <input type="file" id="import-input" hidden />
+      </fieldset>
       <fieldset>
         <legend>Grid</legend>
         <label>Size X: 
