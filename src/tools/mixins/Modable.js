@@ -4,13 +4,12 @@ define([], function () {
 
   function Modable() {}
 
-  Modable.prototype.setupModable = function (modes, evtTarget) {
+  Modable.prototype.setupModable = function (evtTarget) {
     this._modable = {
       _current: null,
-      _isUnsafe: false,
-      _modes: modes
+      _isLocked: false
     };
-    this._redirectToModes();
+    this._redirectToModes(evtTarget);
   };
 
   Modable.prototype._redirectToModes = function (evtTarget) {
@@ -32,12 +31,12 @@ define([], function () {
     }
   };
 
-  Modable.prototype.changeMode = function (name) {
-    if (!this._modable._isUnsafe) {
+  Modable.prototype.changeMode = function (mode) {
+    if (!this._modable._isLocked) {
       if (this._modable._current && this._modable._current.disable) {
         this._modable._current.disable();
       }
-      this._modable._current = this._modable._modes[name];
+      this._modable._current = mode;
       if (this._modable._current && this._modable._current.enable) {
         this._modable._current.enable();
       }
@@ -47,14 +46,16 @@ define([], function () {
     return false;
   };
 
-  Modable.prototype.notifyStartOfMode = function (flowName) {
-    this._modable.isUnsafe = true;
-    this._modable._current = this._modable._modes[flowName];
+  Modable.prototype.getCurrentMode = function () {
+    return this._modable._current;
   };
 
-  Modable.prototype.notifyEndOfMode = function (flowName) {
-    this._modable.isUnsafe = false;
-    this._modable._current = null;
+  Modable.prototype.lockUIMode = function () {
+    this._modable._isLocked = true;
+  };
+
+  Modable.prototype.unlockUIMode = function () {
+    this._modable._isLocked = false;
   };
 
   return Modable;

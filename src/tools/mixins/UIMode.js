@@ -2,20 +2,19 @@
 define([], function () {
   'use strict';
 
-  function UIMode(name, control) {
-    this._name = name;
+  function UIMode(control) {
     this._control = control;
   }
 
-  UIMode.prototype.start = function () {
-    if (this._control.notifyStartOfMode) {
-      this._control.notifyStartOfMode(this._name);
+  UIMode.prototype.startFlow = function (name) {
+    if (this._control.notifyStartOfFlow) {
+      this._control.notifyStartOfFlow(name, this);
     }
   };
 
-  UIMode.prototype.end = function () {
-    if (this._control.notifyEndOfMode) {
-      this._control.notifyEndOfMode(this._name);
+  UIMode.prototype.endFlow = function (name) {
+    if (this._control.notifyEndOfFlow) {
+      this._control.notifyEndOfFlow(name, this);
     }
   };
 
