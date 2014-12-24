@@ -1,19 +1,21 @@
 
 define([
   'S',
+  'tools/mixins/UIMode',
   'scene/metrics'
-], function (S, metrics) {
+], function (S, UIMode, metrics) {
   'use strict';
 
   function PlantModificationMode(control, model, handler) {
-    this._control = control;
+    UIMode.call(this, control);
     this._model = model;
     this._handler = handler;
     this._lastPointerCoordinates = null;
   }
+  S.theClass(PlantModificationMode).inheritsFrom(UIMode);
 
   PlantModificationMode.prototype.onmousedown = function (evt) {
-    this._control.notifyStartOfFlow('modify-primitive-plant');
+    this.startFlow('modify-primitive-plant');
     this._selectedPrimitive = this._model.getFocusedPrimitive();
     this._isChangingPlant = true;
 
@@ -27,7 +29,7 @@ define([
 
   PlantModificationMode.prototype.onmouseup = function () {
     this._isChangingPlant = false;
-    this._control.notifyEndOfFlow('modify-primitive-plant');
+    this.endFlow('modify-primitive-plant');
   };
 
   PlantModificationMode.prototype.onmousemove = function (evt) {

@@ -1,20 +1,22 @@
 
 define([
   'S',
+  'tools/mixins/UIMode',
   'scene/metrics'
-], function (S, metrics) {
+], function (S, UIMode, metrics) {
   'use strict';
 
   function PrimitiveCreationMode(control, model) {
-    this._control = control;
+    UIMode.call(this, control);
     this._model = model;
     this._creatingPrimitiveStage = 'FINISHED';
   }
+  S.theClass(PrimitiveCreationMode).inheritsFrom(UIMode);
 
   PrimitiveCreationMode.prototype.onmousedown = function (evt) {
     switch (this._creatingPrimitiveStage) {
       case 'FINISHED':
-        this._control.notifyStartOfFlow('creating-primitive');
+        this.startFlow('creating-primitive');
         this._creatingPrimitiveStage = 'SETTING_PLANT';
 
         this._startDrawingPoint =
@@ -38,7 +40,7 @@ define([
         break;
       case 'SETTING_HEIGHT':
         this._creatingPrimitiveStage = 'FINISHED';
-        this._control.notifyEndOfFlow('creating-primitive');
+        this.endFlow('creating-primitive');
         break;
     }
   };

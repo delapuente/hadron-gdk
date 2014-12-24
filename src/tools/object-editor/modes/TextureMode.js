@@ -1,11 +1,12 @@
 
 define([
-  'S'
-], function (S) {
+  'S',
+  'tools/mixins/UIMode'
+], function (S, UIMode) {
   'use strict';
 
   function TextureMode(control, root, model, textureLayer) {
-    this._control = control;
+    UIMode.call(this, control);
     this._root = root;
     this._model = model;
     this._textureLayer = textureLayer;
@@ -20,9 +21,10 @@ define([
 
     this._lastPointerCoordinates = null;
   }
+  S.theClass(TextureMode).inheritsFrom(UIMode);
 
   TextureMode.prototype.onmousedown = function (evt) {
-    this._control.notifyStartOfFlow('moving-texture');
+    this.startFlow('moving-texture');
     this._movingTexture = true;
     this._lastPointerCoordinates = evt.viewportCoordinates;
   };
@@ -30,7 +32,7 @@ define([
   TextureMode.prototype.onmouseup = function () {
     this._movingTexture = false;
     this._selectedTexture = null;
-    this._control.notifyEndOfFlow('moving-texture');
+    this.endFlow('moving-texture');
   };
 
   TextureMode.prototype.onmousemove = function (evt) {

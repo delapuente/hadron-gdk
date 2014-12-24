@@ -1,19 +1,21 @@
 
 define([
   'S',
+  'tools/mixins/UIMode',
   'scene/metrics'
-], function (S, metrics) {
+], function (S, UIMode, metrics) {
   'use strict';
 
   function HeightModificationMode(control, model, handler) {
-    this._control = control;
+    UIMode.call(this, control);
     this._model = model;
     this._handler = handler;
     this._lastPointerCoordinates = null;
   }
+  S.theClass(HeightModificationMode).inheritsFrom(UIMode);
 
   HeightModificationMode.prototype.onmousedown = function (evt) {
-    this._control.notifyStartOfFlow('modify-primitive-height');
+    this.startFlow('modify-primitive-height');
     this._selectedPrimitive = this._model.getFocusedPrimitive();
     this._isChangingHeight = true;
 
@@ -27,7 +29,7 @@ define([
 
   HeightModificationMode.prototype.onmouseup = function () {
     this._isChangingHeight = false;
-    this._control.notifyEndOfFlow('modify-primitive-height');
+    this.endFlow('modify-primitive-height');
   };
 
   HeightModificationMode.prototype.onmousemove = function (evt) {

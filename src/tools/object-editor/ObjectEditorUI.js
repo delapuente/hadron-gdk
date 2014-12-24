@@ -1,5 +1,7 @@
 
 define([
+  'S',
+  'tools/mixins/Modable',
   'gfx/System',
   'lib/strongforce',
   'scene/metrics',
@@ -13,8 +15,8 @@ define([
   'tools/helpers/selections/SimpleSelector',
   'tools/helpers/surfaces/Shadow',
   'tools/helpers/handlers/Handler'
-], function (GfxSystem, strongforce, metrics, Isospace, CuboidFragment,
-             TextureMode, PrimitiveMode, PrimitiveCreationMode,
+], function (S, Modable, GfxSystem, strongforce, metrics, Isospace,
+             CuboidFragment, TextureMode, PrimitiveMode, PrimitiveCreationMode,
              HeightModificationMode, PlantModificationMode, SimpleSelector,
              Shadow, Handler) {
   'use strict';
@@ -71,28 +73,28 @@ define([
     this._model.addEventListener(
       'textureAdded',
       function () {
-        this._selectMode(this._textureControlMode);
+        this.changeMode(this._textureControlMode);
       }.bind(this)
     );
 
     this._textureTools.addEventListener('click', function () {
-      this._selectMode(this._textureControlMode);
+      this.changeMode(this._textureControlMode);
     }.bind(this), true);
 
     // Creation mode activation
     this._togglePrimitive.addEventListener('click', function (evt) {
       var toggle = evt.target;
       if (toggle.checked) {
-        this._selectMode(this._primitiveCreationMode);
+        this.changeMode(this._primitiveCreationMode);
       }
       else {
-        this._selectMode(this._primitiveMode);
+        this.changeMode(this._primitiveMode);
       }
     }.bind(this));
 
     // Primitive mode activation
     this._primitiveTools.addEventListener('click', function () {
-      this._selectMode(this._primitiveMode);
+      this.changeMode(this._primitiveMode);
     }.bind(this), true);
 
     // Primitive modification activation
@@ -134,6 +136,7 @@ define([
         this._model.clear();
       }.bind(this));
   }
+  S.theClass(ObjectEditorUI).mix(Modable);
 
   ObjectEditorUI.prototype._download = function (stream) {
     var download = this._root.querySelector('#download-object');
@@ -143,19 +146,20 @@ define([
   };
 
   ObjectEditorUI.prototype._onHandler = function (evt) {
-    var inPrimitiveMode = this._currentMode === this._primitiveMode ||
-                          this._currentMode === this._heightModificationMode ||
-                          this._currentMode === this._plantModificationMode;
+    var currentMode = this.getCurrentMode();
+    var inPrimitiveMode = currentMode === this._primitiveMode ||
+                          currentMode === this._heightModificationMode ||
+                          currentMode === this._plantModificationMode;
     if (!inPrimitiveMode) { return; }
 
     var state = evt.state;
     if (state !== 'NON_READY') {
-      this._selectMode(evt.target === this._yHandler ?
+      this.changeMode(evt.target === this._yHandler ?
                        this._heightModificationMode :
                        this._plantModificationMode);
     }
     else {
-      this._selectMode(this._primitiveMode);
+      this.changeMode(this._primitiveMode);
     }
   };
 
@@ -213,9 +217,6 @@ define([
   };
 
   ObjectEditorUI.prototype._setupControlModes = function () {
-    this._currentMode = null;
-    this._isUnsafe = false;
-
     this._textureControlMode = new TextureMode(
       this,
       this._textureTools,
@@ -244,52 +245,18 @@ define([
       this._xzHandler
     );
 
-    this._redirectToModes();
-  };
-
-  ObjectEditorUI.prototype._redirectToModes = function () {
-    var self = this;
-    redirectToMode('keyup', window);
-    redirectToMode('keydown', window);
-    redirectToMode('mouseup');
-    redirectToMode('mousedown');
-    redirectToMode('mousemove');
-
-    function redirectToMode(eventName, fromTarget) {
-      fromTarget = fromTarget || self._gfxSystem;
-      var hookName = 'on' + eventName;
-      fromTarget.addEventListener(eventName, function (evt) {
-        if (!self._currentMode) { return; }
-        if (!self._currentMode[hookName]) { return; }
-        self._currentMode[hookName].call(self._currentMode, evt);
-      });
-    }
-  };
-
-  ObjectEditorUI.prototype._selectMode = function (mode) {
-    if (!this._isUnsafe) {
-      if (this._currentMode && this._currentMode.disable) {
-        this._currentMode.disable();
-      }
-      this._currentMode = mode;
-      if (this._currentMode && this._currentMode.enable) {
-        this._currentMode.enable();
-      }
-      return true;
-    }
-
-    return false;
+    this.setupModable(this._gfxSystem);
   };
 
   ObjectEditorUI.prototype.notifyStartOfFlow = function (flowName) {
     console.log('Starting flow ' + flowName);
-    this._isUnsafe = true;
+    this.lockUIMode();
     this._currentFlow = flowName;
   };
 
   ObjectEditorUI.prototype.notifyEndOfFlow = function (flowName) {
     console.log('Ending flow ' + flowName);
-    this._isUnsafe = false;
+    this.unlockUIMode();
     this._currentFlow = null;
 
     if (flowName === 'creating-primitive') {
@@ -300,7 +267,7 @@ define([
     if (flowName.startsWith('modify-primitive-') &&
         this._xzHandler.getState() === 'NON_READY' &&
         this._yHandler.getState() === 'NON_READY') {
-      this._selectMode(this._primitiveMode);
+      this.changeMode(this._primitiveMode);
     }
   };
 

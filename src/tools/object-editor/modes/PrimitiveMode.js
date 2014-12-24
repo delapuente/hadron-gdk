@@ -1,13 +1,14 @@
 
 define([
   'S',
+  'tools/mixins/UIMode',
   'scene/metrics',
   'gfx/fragments/CuboidFragment'
-], function (S, metrics, CuboidFragment) {
+], function (S, UIMode, metrics, CuboidFragment) {
   'use strict';
 
   function PrimitiveMode(control, root, model, isospace, isospaceLayer) {
-    this._control = control;
+    UIMode.call(this, control);
     this._root = root;
     this._model = model;
     this._isospace = isospace;
@@ -26,6 +27,7 @@ define([
 
     this._lastPointerCoordinates = null;
   }
+  S.theClass(PrimitiveMode).inheritsFrom(UIMode);
 
   PrimitiveMode.prototype.enable = function () {
     for (var i = 0, l = this._isospaceLayer.children.length; i < l; i++) {
@@ -48,7 +50,7 @@ define([
   };
 
   PrimitiveMode.prototype.onmousedown = function (evt) {
-    this._control.notifyStartOfFlow('moving-primitive');
+    this.startFlow('moving-primitive');
     this._movingPrimitive = true;
     this._lastPointerCoordinates =
       metrics.getMapCoordinates(evt.viewportCoordinates);
@@ -57,7 +59,7 @@ define([
   PrimitiveMode.prototype.onmouseup = function () {
     this._movingPrimitive = false;
     this._model.selectPrimitive(null);
-    this._control.notifyEndOfFlow('moving-primitive');
+    this.endFlow('moving-primitive');
   };
 
   PrimitiveMode.prototype.onmousemove = function (evt) {
