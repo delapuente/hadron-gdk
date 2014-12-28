@@ -125,7 +125,7 @@ define([
         var fileReader = new FileReader();
         fileReader.onloadend = function () {
           var stream = fileReader.result;
-          this._model.import(JSON.parse(stream));
+          this._model.import(stream);
         }.bind(this);
         fileReader.readAsText(file);
         evt.target.value = '';

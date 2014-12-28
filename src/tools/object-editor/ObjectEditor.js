@@ -5,8 +5,11 @@ define([
   'tools/helpers/grid/Grid',
   'gfx/textures/Texture',
   'scene/nodes/Node',
-  'scene/nodes/geometries/Cuboid'
-], function (S, strongforce, Grid, Texture, Node, Cuboid) {
+  'scene/nodes/geometries/Cuboid',
+  'scene/nodes/HObject',
+  'formats/hobject/json'
+], function (S, strongforce, Grid, Texture, Node, Cuboid, HObject,
+             HObject2JSON) {
   'use strict';
 
   var Model = strongforce.Model;
@@ -105,42 +108,24 @@ define([
   };
 
   ObjectEditor.prototype.serializeObject = function ( ) {
-    var simple = {
-      nodes:       [],
-      textures:    [],
-      __class__:   'HObject',
-      __version__: '1.0'
-    };
-
-    // Save nodes
-    this.primitives.forEach(function (primitive) {
-      simple.nodes.push({
-        position: primitive.getPosition(),
-        dimensions: primitive.getDimensions()
-      });
+    var hobject = new HObject({
+      nodes: this.primitives,
+      textures: this.textures
     });
-
-    // Save textures
-    this.textures.forEach(function (texture) {
-      simple.textures.push({
-        name: texture.name,
-        position: texture.getPosition(),
-        data: texture.getSourceData()
-      });
-    });
-
-    return JSON.stringify(simple);
+    return HObject2JSON.serialize(hobject);
   };
 
-  ObjectEditor.prototype.import = function (simple) {
+  ObjectEditor.prototype.import = function (jsonString) {
     this.clear();
 
-    simple.textures.forEach(function (texture) {
+    var hobject = HObject2JSON.deserialize(jsonString);
+
+    hobject.textures.forEach(function (texture) {
       var newTexture = this.addNewTexture(texture.data, texture.name);
       newTexture.setPosition(texture.position);
     }.bind(this));
 
-    simple.nodes.forEach(function (primitive) {
+    hobject.nodes.forEach(function (primitive) {
       this.addNewPrimitive(primitive.dimensions, primitive.position);
     }.bind(this));
   };
