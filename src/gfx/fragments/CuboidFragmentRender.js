@@ -131,7 +131,7 @@ define([
     graphic.lineTo.apply(graphic, p([0, sizeY, sizeZ]));
     graphic.lineTo.apply(graphic, p([0, sizeY, 0]));
 
-    graphic.updateBounds();
+    graphic.updateLocalBounds();
     graphic.hitArea = graphic.getLocalBounds();
   };
 

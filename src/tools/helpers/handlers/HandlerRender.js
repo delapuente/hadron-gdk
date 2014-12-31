@@ -88,7 +88,7 @@ define([
     graphic.beginFill(currentColor);
     graphic.drawCircle(0, 0, thresholdRadius);
 
-    graphic.updateBounds();
+    graphic.updateLocalBounds();
     graphic.hitArea = graphic.getLocalBounds();
   };
 
