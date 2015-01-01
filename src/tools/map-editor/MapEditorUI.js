@@ -1,15 +1,17 @@
 
 define([
+  'S',
+  'tools/mixins/Modable',
   'gfx/System',
   'lib/strongforce',
   'scene/metrics',
   'gfx/Isospace',
-  'gfx/fragments/CuboidFragment',
+  'gfx/fragments/ObjectFragment',
   'tools/helpers/selections/SimpleSelector',
   'tools/helpers/surfaces/Shadow',
   'tools/helpers/handlers/Handler'
-], function (GfxSystem, strongforce, metrics, Isospace, CuboidFragment,
-             SimpleSelector, Shadow, Handler) {
+], function (S, Modable, GfxSystem, strongforce, metrics, Isospace,
+             ObjectFragment, SimpleSelector, Shadow, Handler) {
   'use strict';
 
   var Loop = strongforce.Loop;
@@ -17,7 +19,7 @@ define([
   function MapEditorUI(root, model) {
     this._graphicEntities = {};
     this._gfxSystem = GfxSystem.getSystem();
-    this._gfxSystem.resizeViewport([800, 600]);
+    this._gfxSystem.resizeViewport([1280, 1080]);
     this._gfxSystem.centerCamera();
     this._gfxSystem.setBgColor(0xF0F0F0);
 
@@ -45,7 +47,7 @@ define([
     this._root = root;
     this._textureTools = this._root.querySelector('#texture-tools');
     this._primitiveTools = this._root.querySelector('#primitive-tools');
-    this._togglePrimitive =
+      this._togglePrimitive =
       this._primitiveTools.querySelector('#toggle-primitive-mode');
 
     this._model = model;
@@ -126,7 +128,57 @@ define([
       .addEventListener('click', function () {
         this._model.clear();
       }.bind(this));
+
+    // Palette management
+    this._root.querySelector('#import-object-button')
+      .addEventListener('click', function (evt) {
+        this._root.querySelector('#import-object-input').click();
+      }.bind(this));
+
+    this._root.querySelector('#import-object-input')
+      .addEventListener('change', function (evt) {
+        var file = evt.target.files[0];
+        var fileReader = new FileReader();
+        fileReader.onloadend = function () {
+          var stream = fileReader.result;
+          this._model.importObject(stream);
+        }.bind(this);
+        fileReader.readAsText(file);
+        evt.target.value = '';
+      }.bind(this));
+
+    this._model.addEventListener('objectAddedToPalette', function (evt) {
+      this._updatePalette(evt.object);
+    }.bind(this));
+
+    this._model.addEventListener('objectAddedToMap', function (evt) {
+      var objectNode = evt.node;
+      objectNode.nodes.forEach(function (geometryNode) {
+        var objectFragment = new ObjectFragment(geometryNode, objectNode);
+        this._isospace.addFragment(objectFragment);
+      }.bind(this));
+    }.bind(this));
   }
+  S.theClass(MapEditorUI).mix(Modable);
+
+  MapEditorUI.prototype._updatePalette = function (hobject) {
+    var objectList = this._root.querySelector('#object-list');
+    var nextIndex = objectList.querySelectorAll('li').length;
+    var li = document.createElement('LI');
+    // TODO: Compute thumbnail in a smarter way!
+    var img = document.createElement('IMG');
+    img.src = hobject.textures[0].data;
+    img.style.height = '10rem';
+    var addToMapButton = document.createElement('BUTTON');
+    addToMapButton.textContent = 'Add to map';
+    addToMapButton.dataset.index = nextIndex;
+    addToMapButton.addEventListener('click', function (evt) {
+      this._model.addToMap(evt.target.dataset.index);
+    }.bind(this));
+    li.appendChild(img);
+    li.appendChild(addToMapButton);
+    objectList.appendChild(li);
+  };
 
   MapEditorUI.prototype._download = function (stream) {
     var download = this._root.querySelector('#download-object');
@@ -209,80 +261,44 @@ define([
     this._currentMode = null;
     this._isUnsafe = false;
 
-    this._textureControlMode = new TextureMode(
-      this,
-      this._textureTools,
-      this._model,
-      this._textureLayer
-    );
-    this._primitiveMode = new PrimitiveMode(
-      this,
-      this._primitiveTools,
-      this._model,
-      this._isospace,
-      this._isospaceLayer
-    );
-    this._primitiveCreationMode = new PrimitiveCreationMode(
-      this,
-      this._model
-    );
-    this._heightModificationMode = new HeightModificationMode(
-      this,
-      this._model,
-      this._yHandler
-    );
-    this._plantModificationMode = new PlantModificationMode(
-      this,
-      this._model,
-      this._xzHandler
-    );
-
-    this._redirectToModes();
-  };
-
-  MapEditorUI.prototype._redirectToModes = function () {
-    var self = this;
-    redirectToMode('keyup', window);
-    redirectToMode('keydown', window);
-    redirectToMode('mouseup');
-    redirectToMode('mousedown');
-    redirectToMode('mousemove');
-
-    function redirectToMode(eventName, fromTarget) {
-      fromTarget = fromTarget || self._gfxSystem;
-      var hookName = 'on' + eventName;
-      fromTarget.addEventListener(eventName, function (evt) {
-        if (!self._currentMode) { return; }
-        if (!self._currentMode[hookName]) { return; }
-        self._currentMode[hookName].call(self._currentMode, evt);
-      });
-    }
-  };
-
-  MapEditorUI.prototype._selectMode = function (mode) {
-    if (!this._isUnsafe) {
-      if (this._currentMode && this._currentMode.disable) {
-        this._currentMode.disable();
-      }
-      this._currentMode = mode;
-      if (this._currentMode && this._currentMode.enable) {
-        this._currentMode.enable();
-      }
-      return true;
-    }
-
-    return false;
+    //this._textureControlMode = new TextureMode(
+      //this,
+      //this._textureTools,
+      //this._model,
+      //this._textureLayer
+    //);
+    //this._primitiveMode = new PrimitiveMode(
+      //this,
+      //this._primitiveTools,
+      //this._model,
+      //this._isospace,
+      //this._isospaceLayer
+    //);
+    //this._primitiveCreationMode = new PrimitiveCreationMode(
+      //this,
+      //this._model
+    //);
+    //this._heightModificationMode = new HeightModificationMode(
+      //this,
+      //this._model,
+      //this._yHandler
+    //);
+    //this._plantModificationMode = new PlantModificationMode(
+      //this,
+      //this._model,
+      //this._xzHandler
+    //);
   };
 
   MapEditorUI.prototype.notifyStartOfFlow = function (flowName) {
     console.log('Starting flow ' + flowName);
-    this._isUnsafe = true;
+    this.lockMode();
     this._currentFlow = flowName;
   };
 
   MapEditorUI.prototype.notifyEndOfFlow = function (flowName) {
     console.log('Ending flow ' + flowName);
-    this._isUnsafe = false;
+    this.unlockMode();
     this._currentFlow = null;
 
     if (flowName === 'creating-primitive') {

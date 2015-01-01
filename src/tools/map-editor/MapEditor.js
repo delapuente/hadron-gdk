@@ -5,43 +5,62 @@ define([
   'tools/helpers/grid/Grid',
   'gfx/textures/Texture',
   'scene/nodes/Node',
-  'scene/nodes/geometries/Cuboid'
-], function (S, strongforce, Grid, Texture, Node, Cuboid) {
+  'scene/nodes/geometries/Cuboid',
+  'formats/hobject/json'
+], function (S, strongforce, Grid, Texture, Node, Cuboid, HObject2JSON) {
   'use strict';
 
   var Model = strongforce.Model;
 
-  function ObjectEditor(gridSize) {
+  function MapEditor(gridSize) {
     Model.call(this);
     S.theObject(this)
       .has('grid', new Grid(gridSize))
-      .has('textures', [])
-      .has('primitives', []);
+      .has('backgrounds', [])
+      .has('foregrounds', [])
+      .has('regions', [])
+      .has('palette', [])
+      .has('objects', []);
+
+    this._backgroundColor = 0x000000;
   }
-  S.theClass(ObjectEditor).inheritsFrom(Model);
+  S.theClass(MapEditor).inheritsFrom(Model);
 
-  ObjectEditor.prototype.getSubmodels = function () {
-    return [this.grid].concat(this.textures).concat(this.primitives);
+  MapEditor.prototype.getSubmodels = function () {
+    return [this.grid]
+      .concat(this.backgrounds)
+      .concat(this.foregrounds)
+      .concat(this.regions);
   };
 
-  ObjectEditor.prototype.addNewTexture = function (source, name) {
-    var newTexture = Object.create(new Texture(source));
-    newTexture.name = name;
-    this.textures.push(newTexture);
-    this.dispatchEvent('textureAdded', {
-      texture: newTexture
+  MapEditor.prototype.changeBackgroundColor = function (color) {
+    if (typeof color === 'string') {
+      color = parseInt(color, 16);
+    }
+    this._backgroundColor = color;
+    this.dispatchEvent('backgroundColorChanged', {
+      color: color
     });
-    return newTexture;
   };
 
-  ObjectEditor.prototype.deleteTexture = function (texture) {
+  MapEditor.prototype.addNewBackground = function (source, name) {
+    var newBackground = Object.create(new Texture(source));
+    newBackground.name = name;
+    this.textures.push(newBackground);
+    this.dispatchEvent('backgroundAdded', {
+      background: newBackground
+    });
+    return newBackground;
+  };
+
+  MapEditor.prototype.deleteBackground = function (texture) {
     this.textures.splice(this.textures.indexOf(texture), 1);
     this.dispatchEvent('textureDeleted', {
       texture: texture
     });
   };
 
-  ObjectEditor.prototype.addNewPrimitive = function (dimensions, position) {
+  MapEditor.prototype.addNewPrimitive = function (dimensions, position) {
     position = position || [0, 0, 0];
     var newGeometry = new Cuboid(dimensions);
     var geometryNode = S.augment(newGeometry).with(Node, position);
@@ -52,7 +71,7 @@ define([
     return geometryNode;
   };
 
-  ObjectEditor.prototype.deletePrimitive = function (primitive) {
+  MapEditor.prototype.deletePrimitive = function (primitive) {
     if (this._focusedPrimitive === primitive) {
       this.focusPrimitive(null);
     }
@@ -65,14 +84,14 @@ define([
     });
   };
 
-  ObjectEditor.prototype.selectPrimitive = function (primitive) {
+  MapEditor.prototype.selectPrimitive = function (primitive) {
     this._selectedPrimitive = primitive;
     this.dispatchEvent('primitiveSelected', {
       primitive: primitive
     });
   };
 
-  ObjectEditor.prototype.focusPrimitive = function (primitive) {
+  MapEditor.prototype.focusPrimitive = function (primitive) {
     var lastFocused = this._focusedPrimitive;
     this._focusedPrimitive = primitive;
     this.dispatchEvent('primitiveFocusChanged', {
@@ -81,58 +100,53 @@ define([
     });
   };
 
-  ObjectEditor.prototype.getFocusedPrimitive = function () {
+  MapEditor.prototype.getFocusedPrimitive = function () {
     return this._focusedPrimitive;
   };
 
-  ObjectEditor.prototype.getSelectedPrimitive = function () {
+  MapEditor.prototype.getSelectedPrimitive = function () {
     return this._selectedPrimitive;
   };
 
-  ObjectEditor.prototype.selectTexture = function (primitive) {
-    this._selectedTexture = texture;
+  MapEditor.prototype.selectBackground = function (primitive) {
+    this._selectedBackground = texture;
     this.dispatchEvent('textureSelected', {
       texture: texture
     });
   };
 
-  ObjectEditor.prototype.getSelectedTexture = function () {
-    return this._selectedTexture;
+  MapEditor.prototype.getSelectedBackground = function () {
+    return this._selectedBackground;
   };
 
-  ObjectEditor.prototype.setGridSize = function (newDimensions) {
+  MapEditor.prototype.setGridSize = function (newDimensions) {
     this._grid.setDimensions(newDimensions);
   };
 
-  ObjectEditor.prototype.serializeObject = function ( ) {
-    var simple = {
-      nodes:       [],
-      textures:    [],
-      __class__:   'HObject',
-      __version__: '1.0'
-    };
-
-    // Save nodes
-    this.primitives.forEach(function (primitive) {
-      simple.nodes.push({
-        position: primitive.getPosition(),
-        dimensions: primitive.getDimensions()
-      });
-    });
-
-    // Save textures
-    this.textures.forEach(function (texture) {
-      simple.textures.push({
-        name: texture.name,
-        position: texture.getPosition(),
-        data: texture.getSourceData()
-      });
-    });
-
-    return JSON.stringify(simple);
+  MapEditor.prototype.importObject = function (jsonString) {
+    var hobject = HObject2JSON.deserialize(jsonString);
+    this.addToPalette(hobject);
   };
 
-  ObjectEditor.prototype.import = function (simple) {
+  MapEditor.prototype.addToPalette = function (hobject) {
+    this.palette.push(hobject);
+    this.dispatchEvent('objectAddedToPalette', {
+      object: hobject
+    });
+  };
+
+  MapEditor.prototype.addToMap = function (paletteIndex, position) {
+    position = [0, 0, 0];
+    var hobject = this.palette[paletteIndex];
+    console.log(paletteIndex);
+    var objectNode = S.augment(hobject).with(Node, position);
+    this.objects.push(objectNode);
+    this.dispatchEvent('objectAddedToMap', {
+      node: objectNode
+    });
+  };
+
+  MapEditor.prototype.import = function (simple) {
     this.clear();
 
     simple.textures.forEach(function (texture) {
@@ -145,7 +159,7 @@ define([
     }.bind(this));
   };
 
-  ObjectEditor.prototype.clear = function () {
+  MapEditor.prototype.clear = function () {
     var textures = this.textures.slice(0);
     textures.forEach(function (texture) {
       this.deleteTexture(texture);
@@ -157,5 +171,5 @@ define([
   };
 
 
-  return ObjectEditor;
+  return MapEditor;
 });

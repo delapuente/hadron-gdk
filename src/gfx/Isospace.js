@@ -15,7 +15,7 @@ define([
   function Isospace(layer) {
     Model.apply(this, arguments);
     S.theObject(this).has('graph', new Graph([], isOverlappedBy));
-  };
+  }
   S.theClass(Isospace).inheritsFrom(Model);
 
   Isospace.prototype.render = IsospaceRender;
@@ -48,7 +48,7 @@ define([
 
   Isospace.prototype.removeNode = function (node) {
     var fragmentGraph = this.graph;
-    this.graph.nodes = fragmentGraph.nodes.filter(function (fragment) {
+    fragmentGraph.nodes = fragmentGraph.nodes.filter(function (fragment) {
       return fragment.node !== node;
     });
     this._dispatchIsospaceChanged();

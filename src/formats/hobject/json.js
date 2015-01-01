@@ -1,7 +1,10 @@
 
 define([
+  'S',
   'scene/nodes/HObject',
-], function (HObject) {
+  'scene/nodes/Node',
+  'scene/nodes/geometries/Cuboid'
+], function (S, HObject, Node, Cuboid) {
   'use strict';
 
   var VERSION = '1.0';
@@ -66,8 +69,14 @@ define([
                      'while importing.');
       }
 
+      var nodes = simple.nodes.map(function (simpleNode) {
+        var cuboid = new Cuboid(simpleNode.dimensions);
+        var node = S.augment(cuboid).with(Node, simpleNode.position);
+        return node;
+      });
+
       hobject = new HObject({
-        nodes: simple.nodes,
+        nodes: nodes,
         textures: simple.textures
       });
     }

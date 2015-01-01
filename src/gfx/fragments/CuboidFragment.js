@@ -8,6 +8,9 @@ define([
 
   var Model = strongforce.Model;
 
+  // TODO: Now this is the base for all derivated fragments but we should
+  // generalize to Fragment when needed. At least for the constructor
+  // functionallity.
   function CuboidFragment(cuboidNode) {
     Model.apply(this, arguments);
     this.proxyEventsFrom(cuboidNode);
