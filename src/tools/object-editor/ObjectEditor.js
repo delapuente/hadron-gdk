@@ -126,7 +126,7 @@ define([
     }.bind(this));
 
     hobject.nodes.forEach(function (primitive) {
-      this.addNewPrimitive(primitive.dimensions, primitive.position);
+      this.addNewPrimitive(primitive.getDimensions(), primitive.getPosition());
     }.bind(this));
   };
 

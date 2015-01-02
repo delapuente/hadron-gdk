@@ -27,7 +27,6 @@ define([
     this._textureLayer = this._gfxSystem.newLayer('texture-layer');
     this._isospaceLayer = this._gfxSystem.newLayer('isospace-layer');
     this._handlerLayer = this._gfxSystem.newLayer('handler-layer');
-    this._isospaceLayer.alpha = 0.8;
 
     this._isospace = new Isospace(this._isospaceLayer);
     this._highlight = new SimpleSelector();

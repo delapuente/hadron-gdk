@@ -148,6 +148,8 @@ define([
 
   RenderSystem.prototype.Sprite = pixi.Sprite;
 
+  RenderSystem.prototype.DisplayObjectContainer = pixi.DisplayObjectContainer;
+
   var system;
 
   return {

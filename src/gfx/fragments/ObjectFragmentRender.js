@@ -15,8 +15,40 @@ define([
     EventEmitter.apply(this);
 
     this._gfxSystem = GfxSystem.getSystem();
-    this.graphic =
-      new this._gfxSystem.Sprite.fromImage(objectNode.textures[0].data);
+    this.graphic = new this._gfxSystem.DisplayObjectContainer();
+    var texture = objectNode.textures[0];
+    var textureLayer =
+      this._gfxSystem.Sprite.fromImage(texture.data);
+    textureLayer.position.x = texture.position[0];
+    textureLayer.position.y = texture.position[1];
+    var maskLayer = new this._gfxSystem.Graphics();
+    this.graphic.addChild(maskLayer);
+    this.graphic.addChild(textureLayer);
+
+    var p = metrics.getScreenCoordinates.bind(metrics);
+    var pos = geometryNode.getPosition();
+    var dim = geometryNode.getDimensions();
+    var screenPosition = p(pos);
+    maskLayer.position.x = screenPosition[0];
+    maskLayer.position.y = screenPosition[1];
+    maskLayer.clear();
+    maskLayer.lineStyle(0);
+    maskLayer.beginFill(0x000000, 1);
+    maskLayer.moveTo.apply(maskLayer, p([0, dim[1], 0]));
+    maskLayer.lineTo.apply(maskLayer, p([0, dim[1], dim[2]]));
+    maskLayer.lineTo.apply(maskLayer, p([0, 0, dim[2]]));
+    maskLayer.lineTo.apply(maskLayer, p([dim[0], 0, dim[2]]));
+    maskLayer.lineTo.apply(maskLayer, p([dim[0], 0, 0]));
+    maskLayer.lineTo.apply(maskLayer, p([dim[0], dim[1], 0]));
+
+
+    textureLayer.mask = maskLayer;
+
+    var farthestPoint = objectNode.getLocalBounds()[0];
+    var offset = p(farthestPoint);
+
+    this.graphic.position.x -= offset[0];
+    this.graphic.position.y -= offset[1];
   }
   S.theClass(ObjectFragmentRender).inheritsFrom(Render);
   S.theClass(ObjectFragmentRender).mix(EventEmitter);
