@@ -5,13 +5,13 @@ define([
   'gfx/System',
   'lib/strongforce',
   'scene/metrics',
+  'tools/map-editor/modes/ObjectMode',
   'gfx/Isospace',
   'gfx/fragments/ObjectFragment',
   'tools/helpers/selections/SimpleSelector',
   'tools/helpers/surfaces/Shadow',
-  'tools/helpers/handlers/Handler'
-], function (S, Modable, GfxSystem, strongforce, metrics, Isospace,
-             ObjectFragment, SimpleSelector, Shadow, Handler) {
+], function (S, Modable, GfxSystem, strongforce, metrics, ObjectMode, Isospace,
+             ObjectFragment, SimpleSelector, Shadow) {
   'use strict';
 
   var Loop = strongforce.Loop;
@@ -26,28 +26,20 @@ define([
     this._gridLayer = this._gfxSystem.newLayer('grid-layer');
     this._textureLayer = this._gfxSystem.newLayer('texture-layer');
     this._isospaceLayer = this._gfxSystem.newLayer('isospace-layer');
-    this._handlerLayer = this._gfxSystem.newLayer('handler-layer');
 
     this._isospace = new Isospace(this._isospaceLayer);
     this._highlight = new SimpleSelector();
     this._shadow = new Shadow();
-    this._xzHandler = new Handler({ x: true, y: false, z: true });
-    this._yHandler = new Handler({ x: false, y: true, z: false });
 
     this._gridLayer.addChild(model.grid.render.graphic);
     this._gridLayer.addChild(this._shadow.render.graphic);
-
-    this._handlerLayer.addChild(this._xzHandler.render.graphic);
-    this._handlerLayer.addChild(this._yHandler.render.graphic);
 
     var placeholder = root.querySelector('#canvas-placeholder');
     placeholder.parentNode.replaceChild(this._gfxSystem.view, placeholder);
 
     this._root = root;
     this._textureTools = this._root.querySelector('#texture-tools');
-    this._primitiveTools = this._root.querySelector('#primitive-tools');
-      this._togglePrimitive =
-      this._primitiveTools.querySelector('#toggle-primitive-mode');
+    this._objectTools = this._root.querySelector('#object-tools');
 
     this._model = model;
     this._model.render = this._render.bind(this);
@@ -57,8 +49,8 @@ define([
     this._loop.start();
 
     this._model.addEventListener(
-      'primitiveFocusChanged',
-      this._onPrimitiveFocused.bind(this)
+      'objectFocusChanged',
+      this._onObjectFocused.bind(this)
     );
 
     // Texture mode activation
@@ -73,26 +65,10 @@ define([
       this._selectMode(this._textureControlMode);
     }.bind(this), true);
 
-    // Creation mode activation
-    this._togglePrimitive.addEventListener('click', function (evt) {
-      var toggle = evt.target;
-      if (toggle.checked) {
-        this._selectMode(this._primitiveCreationMode);
-      }
-      else {
-        this._selectMode(this._primitiveMode);
-      }
-    }.bind(this));
-
-    // Primitive mode activation
-    this._primitiveTools.addEventListener('click', function () {
-      this._selectMode(this._primitiveMode);
+    // Object mode activation
+    this._objectTools.addEventListener('click', function () {
+      this.changeMode(this._objectMode);
     }.bind(this), true);
-
-    // Primitive modification activation
-    var boundOnHandler = this._onHandler.bind(this);
-    this._xzHandler.addEventListener('stateChanged', boundOnHandler);
-    this._yHandler.addEventListener('stateChanged', boundOnHandler);
 
     //Grid controls
     var selectGridSizeX = root.querySelector('#select-grid-size-x');
@@ -149,14 +125,6 @@ define([
     this._model.addEventListener('objectAddedToPalette', function (evt) {
       this._updatePalette(evt.object);
     }.bind(this));
-
-    this._model.addEventListener('objectAddedToMap', function (evt) {
-      var objectNode = evt.node;
-      objectNode.nodes.forEach(function (geometryNode) {
-        var objectFragment = new ObjectFragment(geometryNode, objectNode);
-        this._isospace.addFragment(objectFragment);
-      }.bind(this));
-    }.bind(this));
   }
   S.theClass(MapEditorUI).mix(Modable);
 
@@ -186,130 +154,38 @@ define([
     download.click();
   };
 
-  MapEditorUI.prototype._onHandler = function (evt) {
-    var inPrimitiveMode = this._currentMode === this._primitiveMode ||
-                          this._currentMode === this._heightModificationMode ||
-                          this._currentMode === this._plantModificationMode;
-    if (!inPrimitiveMode) { return; }
-
-    var state = evt.state;
-    if (state !== 'NON_READY') {
-      this._selectMode(evt.target === this._yHandler ?
-                       this._heightModificationMode :
-                       this._plantModificationMode);
-    }
-    else {
-      this._selectMode(this._primitiveMode);
-    }
-  };
-
-  MapEditorUI.prototype._onPrimitiveFocused = function (evt) {
-    if (this._currentFlow === 'moving-primitive') { return; }
-
-    var primitive = evt.primitive;
-    var lastPrimitive = evt.lastPrimitive;
-
-    this._shadow.setPrimitive(primitive);
-
-    this._xzHandler.render.graphic.visible = false;
-    this._yHandler.render.graphic.visible = false;
-    this._boundOnPrimitiveChanged =
-      this._boundOnPrimitiveChanged ||
-      this._onPrimitiveChanged.bind(this);
-    if (lastPrimitive) {
-      lastPrimitive.removeEventListener(
-        'positionChanged', this._boundOnPrimitiveChanged);
-      lastPrimitive.removeEventListener(
-        'dimensionsChanged', this._boundOnPrimitiveChanged);
-    }
-    if (primitive) {
-      primitive.addEventListener(
-        'positionChanged', this._boundOnPrimitiveChanged);
-      primitive.addEventListener(
-        'dimensionsChanged', this._boundOnPrimitiveChanged);
-      this._xzHandler.render.graphic.visible = true;
-      this._yHandler.render.graphic.visible = true;
-      this._placeHandlers(primitive);
-    }
-  };
-
-  MapEditorUI.prototype._onPrimitiveChanged = function (evt) {
-    this._placeHandlers(evt.target);
-  };
-
-  MapEditorUI.prototype._placeHandlers = function (primitive) {
-      var position = primitive.getPosition();
-      var dimensions = primitive.getDimensions();
-      var yHandlerPosition = [
-        position[0] + dimensions[0],
-        position[1] + dimensions[1],
-        position[2] + dimensions[2]
-      ];
-      var xzHandlerPosition = [
-        position[0] + dimensions[0],
-        position[1],
-        position[2] + dimensions[2]
-      ];
-      this._xzHandler.render.graphic.visible = true;
-      this._yHandler.render.graphic.visible = true;
-      this._xzHandler.setPosition(xzHandlerPosition);
-      this._yHandler.setPosition(yHandlerPosition);
+  MapEditorUI.prototype._onObjectFocused = function (evt) {
+    if (this._currentFlow === 'moving-object') { return; }
   };
 
   MapEditorUI.prototype._setupControlModes = function () {
-    this._currentMode = null;
-    this._isUnsafe = false;
-
     //this._textureControlMode = new TextureMode(
       //this,
       //this._textureTools,
       //this._model,
       //this._textureLayer
     //);
-    //this._primitiveMode = new PrimitiveMode(
-      //this,
-      //this._primitiveTools,
-      //this._model,
-      //this._isospace,
-      //this._isospaceLayer
-    //);
-    //this._primitiveCreationMode = new PrimitiveCreationMode(
-      //this,
-      //this._model
-    //);
-    //this._heightModificationMode = new HeightModificationMode(
-      //this,
-      //this._model,
-      //this._yHandler
-    //);
-    //this._plantModificationMode = new PlantModificationMode(
-      //this,
-      //this._model,
-      //this._xzHandler
-    //);
+    this._objectMode = new ObjectMode(
+      this,
+      this._objectTools,
+      this._model,
+      this._isospace,
+      this._isospaceLayer
+    );
+
+    this.setupModable(this._gfxSystem);
   };
 
   MapEditorUI.prototype.notifyStartOfFlow = function (flowName) {
     console.log('Starting flow ' + flowName);
-    this.lockMode();
+    this.lockUIMode();
     this._currentFlow = flowName;
   };
 
   MapEditorUI.prototype.notifyEndOfFlow = function (flowName) {
     console.log('Ending flow ' + flowName);
-    this.unlockMode();
+    this.unlockUIMode();
     this._currentFlow = null;
-
-    if (flowName === 'creating-primitive') {
-      if (this._togglePrimitive.checked) {
-        this._togglePrimitive.click();
-      }
-    }
-    if (flowName.startsWith('modify-primitive-') &&
-        this._xzHandler.getState() === 'NON_READY' &&
-        this._yHandler.getState() === 'NON_READY') {
-      this._selectMode(this._primitiveMode);
-    }
   };
 
   MapEditorUI.prototype._changeCellSize = function () {

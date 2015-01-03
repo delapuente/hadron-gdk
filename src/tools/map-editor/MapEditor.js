@@ -71,41 +71,41 @@ define([
     return geometryNode;
   };
 
-  MapEditor.prototype.deletePrimitive = function (primitive) {
-    if (this._focusedPrimitive === primitive) {
-      this.focusPrimitive(null);
+  MapEditor.prototype.deletePrimitive = function (hobject) {
+    if (this._focusedObject === hobject) {
+      this.focusObject(null);
     }
-    if (this._selectedPrimitive === primitive) {
-      this.selectPrimitive(null);
+    if (this._selectedObject === hobject) {
+      this.selectObject(null);
     }
-    this.primitives.splice(this.primitives.indexOf(primitive), 1);
-    this.dispatchEvent('primitiveDeleted', {
-      node: primitive
+    this.objects.splice(this.objects.indexOf(hobject), 1);
+    this.dispatchEvent('objectRemovedFromMap', {
+      node: object
     });
   };
 
-  MapEditor.prototype.selectPrimitive = function (primitive) {
-    this._selectedPrimitive = primitive;
-    this.dispatchEvent('primitiveSelected', {
-      primitive: primitive
+  MapEditor.prototype.selectObject = function (hobject) {
+    this._selectedObject = hobject;
+    this.dispatchEvent('objectSelected', {
+      object: hobject
     });
   };
 
-  MapEditor.prototype.focusPrimitive = function (primitive) {
-    var lastFocused = this._focusedPrimitive;
-    this._focusedPrimitive = primitive;
-    this.dispatchEvent('primitiveFocusChanged', {
-      lastPrimitive: lastFocused,
-      primitive: primitive
+  MapEditor.prototype.focusObject = function (hobject) {
+    var lastFocused = this._focusedObject;
+    this._focusedObject = hobject;
+    this.dispatchEvent('objectFocusChanged', {
+      lastObject: lastFocused,
+      object: hobject
     });
   };
 
-  MapEditor.prototype.getFocusedPrimitive = function () {
-    return this._focusedPrimitive;
+  MapEditor.prototype.getFocusedObject = function () {
+    return this._focusedObject;
   };
 
-  MapEditor.prototype.getSelectedPrimitive = function () {
-    return this._selectedPrimitive;
+  MapEditor.prototype.getSelectedObject = function () {
+    return this._selectedObject;
   };
 
   MapEditor.prototype.selectBackground = function (primitive) {

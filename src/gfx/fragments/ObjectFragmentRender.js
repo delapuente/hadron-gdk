@@ -20,6 +20,11 @@ define([
     this._gfxSystem = GfxSystem.getSystem();
     this.graphic = new this._gfxSystem.DisplayObjectContainer();
 
+    objectNode.addEventListener(
+      'positionChanged',
+      this._onObjectPositionChanged.bind(this)
+    );
+
     this.drawFragment(objectNode, geometryNode);
     this.placeFragment(objectNode.getPosition());
   }
@@ -43,6 +48,14 @@ define([
     var textureLayer = this._gfxSystem.Sprite.fromImage(texture.data);
     textureLayer.position.x = texture.position[0];
     textureLayer.position.y = texture.position[1];
+
+    textureLayer.interactive = true;
+    ['over', 'out', 'down', 'up'].forEach(function (action) {
+      var eventName = 'mouse' + action;
+      this.graphic[eventName] = function (data) {
+          this.dispatchEvent(eventName, Object.create(data));
+      }.bind(this);
+    }.bind(this));
 
     // Mask
     var maskLayer = new this._gfxSystem.Graphics();
