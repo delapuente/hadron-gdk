@@ -14,8 +14,8 @@ define([
     Render.apply(this);
     EventEmitter.apply(this);
 
-    this._objectOrigin =
-      metrics.getScreenCoordinates(objectNode.getLocalBounds()[0]);
+    this._objectOrigin = [0,0,0];
+      //metrics.getScreenCoordinates(objectNode.getLocalBounds()[0]);
 
     this._gfxSystem = GfxSystem.getSystem();
     this.graphic = new this._gfxSystem.DisplayObjectContainer();
