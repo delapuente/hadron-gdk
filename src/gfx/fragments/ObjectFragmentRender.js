@@ -10,12 +10,9 @@ define([
   var Render = strongforce.Render;
   var EventEmitter = strongforce.EventEmitter;
 
-  function ObjectFragmentRender(objectFragment, geometryNode, objectNode) {
+  function ObjectFragmentRender(objectFragment, objectNode, cuboidGeometry) {
     Render.apply(this);
     EventEmitter.apply(this);
-
-    this._objectOrigin = [0,0,0];
-      //metrics.getScreenCoordinates(objectNode.getLocalBounds()[0]);
 
     this._gfxSystem = GfxSystem.getSystem();
     this.graphic = new this._gfxSystem.DisplayObjectContainer();
@@ -25,7 +22,7 @@ define([
       this._onObjectPositionChanged.bind(this)
     );
 
-    this.drawFragment(objectNode, geometryNode);
+    this.drawFragment(objectNode, cuboidGeometry);
     this.placeFragment(objectNode.getPosition());
   }
   S.theClass(ObjectFragmentRender).inheritsFrom(Render);
@@ -40,7 +37,7 @@ define([
   };
 
   ObjectFragmentRender.prototype.drawFragment =
-  function (objectNode, geometryNode) {
+  function (objectNode, cuboidGeometry) {
     var p = metrics.getScreenCoordinates.bind(metrics);
 
     // Base texture
@@ -59,8 +56,8 @@ define([
 
     // Mask
     var maskLayer = new this._gfxSystem.Graphics();
-    var screenPosition = p(geometryNode.getPosition());
-    var dimensions = geometryNode.getDimensions();
+    var screenPosition = p(cuboidGeometry.getPosition());
+    var dimensions = cuboidGeometry.getDimensions();
     var sizeX = dimensions[0];
     var sizeY = dimensions[1];
     var sizeZ = dimensions[2];
@@ -85,10 +82,8 @@ define([
 
   ObjectFragmentRender.prototype.placeFragment = function (position) {
     var screenPosition = metrics.getScreenCoordinates(position);
-    var origin = this._objectOrigin;
-
-    this.graphic.position.x = screenPosition[0] - origin[0];
-    this.graphic.position.y = screenPosition[1] - origin[1];
+    this.graphic.position.x = screenPosition[0];
+    this.graphic.position.y = screenPosition[1];
   };
 
   return ObjectFragmentRender;

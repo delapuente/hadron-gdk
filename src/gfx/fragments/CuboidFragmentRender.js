@@ -10,19 +10,9 @@ define([
   var Render = strongforce.Render;
   var EventEmitter = strongforce.EventEmitter;
 
-  function CuboidFragmentRender(cuboidFragment, cuboidNode) {
+  function CuboidFragmentRender(cuboidFragment, node, cuboidGeometry) {
     Render.apply(this);
     EventEmitter.apply(this);
-
-    this._cuboidFragment = cuboidFragment;
-    this._cuboidFragment.addEventListener(
-      'dimensionsChanged',
-      this._onDimensionsChanged.bind(this)
-    );
-    this._cuboidFragment.addEventListener(
-      'positionChanged',
-      this._onPositionChanged.bind(this)
-    );
 
     this._gfxSystem = GfxSystem.getSystem();
     this.graphic = new this._gfxSystem.Graphics();
@@ -33,8 +23,14 @@ define([
           this.dispatchEvent(eventName, Object.create(data));
       }.bind(this);
     }.bind(this));
-    this.drawCuboid(cuboidNode.getDimensions());
-    this.placeCuboid(cuboidNode.getPosition());
+
+    cuboidFragment.addEventListener(
+      'fragmentChanged',
+      this._onFragmentChanged.bind(this)
+    );
+    this._cuboidGeometry = cuboidGeometry;
+    this.drawCuboid(this._cuboidGeometry.getDimensions());
+    this.placeCuboid(this._cuboidGeometry.getPosition());
   }
   S.theClass(CuboidFragmentRender).inheritsFrom(Render);
   S.theClass(CuboidFragmentRender).mix(EventEmitter);
@@ -43,12 +39,9 @@ define([
   CuboidFragmentRender.prototype.FRONT_COLOR = 0x429EBC;
   CuboidFragmentRender.prototype.UP_COLOR = 0x59D6FF;
 
-  CuboidFragmentRender.prototype._onDimensionsChanged = function (evt) {
-    this.drawCuboid(evt.dimensions);
-  };
-
-  CuboidFragmentRender.prototype._onPositionChanged = function (evt) {
-    this.placeCuboid(evt.position);
+  CuboidFragmentRender.prototype._onFragmentChanged = function (evt) {
+    this.drawCuboid(this._cuboidGeometry.getDimensions());
+    this.placeCuboid(this._cuboidGeometry.getPosition());
   };
 
   CuboidFragmentRender.prototype.getLocalBounds = function () {

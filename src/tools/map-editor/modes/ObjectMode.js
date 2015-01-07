@@ -99,19 +99,13 @@ define([
 
   ObjectMode.prototype._addObject = function (evt) {
     var objectNode = evt.node;
-    // XXX: The assymetry with deletePrimitive is intended. When adding a node
-    // it should be split in convex fragments for isometric sorting but when
-    // deleting, the node is removed completely.
-    objectNode.nodes.forEach(function (geometryNode) {
-      var objectFragment = new ObjectFragment(geometryNode, objectNode);
+    ObjectFragment.getFragments(objectNode).forEach(function (objectFragment) {
       this._isospace.addFragment(objectFragment);
       this._updatePrimitiveList(objectFragment);
     }.bind(this));
   };
 
   ObjectMode.prototype._removeObject = function (evt) {
-    // XXX: See _addPrimitive <-- this is a design error, the isospace knows
-    // nothing about nodes, only fragments. The Hadron Map knows about nodes!
     this._isospace.removeNode(evt.node);
     // this._removeFromPrimitiveList(evt.node);
   };
@@ -129,15 +123,15 @@ define([
     //this._primitiveList.insertBefore(li, this._primitiveList.firstChild);
 
     fragment.render.addEventListener('mouseover', function () {
-      this._model.focusObject(fragment.objectNode);
+      this._model.focusObject(fragment.node);
     }.bind(this));
 
     fragment.render.addEventListener('mousedown', function () {
-      this._model.selectObject(fragment.objectNode);
+      this._model.selectObject(fragment.node);
     }.bind(this));
 
     //deleteButton.addEventListener('click', function () {
-      //this._model.deletePrimitive(fragment.objectNode);
+      //this._model.deletePrimitive(fragment.node);
     //}.bind(this));
   };
 

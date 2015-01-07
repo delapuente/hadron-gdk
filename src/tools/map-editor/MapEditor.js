@@ -136,7 +136,7 @@ define([
   };
 
   MapEditor.prototype.addToMap = function (paletteIndex, position) {
-    position = [0, 0, 0];
+    position = position || [0, 0, 0];
     var hobject = this.palette[paletteIndex];
     var objectNode = S.augment(hobject).with(Node, position);
     this.objects.push(objectNode);

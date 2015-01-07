@@ -26,11 +26,7 @@ define([
 
     // Subscribe to fragment alterations
     fragment.addEventListener(
-      'positionChanged',
-      this._onFragmentChanged.bind(this)
-    );
-    fragment.addEventListener(
-      'dimensionsChanged',
+      'fragmentChanged',
       this._onFragmentChanged.bind(this)
     );
 

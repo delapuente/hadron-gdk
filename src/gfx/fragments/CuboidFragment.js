@@ -9,22 +9,35 @@ define([
   var Model = strongforce.Model;
 
   // TODO: Now this is the base for all derivated fragments but we should
-  // generalize to Fragment when needed. At least for the constructor
-  // functionallity.
-  function CuboidFragment(cuboidNode) {
+  // generalize to Fragment when needed.
+  //
+  // At most, the only things a fragment should know are:
+  //   * The logical node that the fragment makes reference
+  //   * The information for spatial calculations (geometryData)
+  //   * The information for visualization (visualizationData).
+  function CuboidFragment(node, cuboidGeometry) {
     Model.apply(this, arguments);
-    this.proxyEventsFrom(cuboidNode);
-    S.theObject(this).has('node', cuboidNode);
+    S.theObject(this)
+      .has('node', node) // XXX: maybe this knowledge should be removed?
+      .has('cuboidGeometry', cuboidGeometry);
+
+    var onGeometryChanged = this._onGeometryChanged.bind(this);
+    cuboidGeometry.addEventListener('positionChanged', onGeometryChanged);
+    cuboidGeometry.addEventListener('dimensionsChanged', onGeometryChanged);
   }
   S.theClass(CuboidFragment).inheritsFrom(Model);
 
   CuboidFragment.prototype.render = CuboidFragmentRender;
 
-  // XXX: Directly assumes primitives are cuboids
+  CuboidFragment.prototype._onGeometryChanged = function () {
+    this.dispatchEvent('fragmentChanged');
+  };
+
+  // XXX: assumes the other geometry is a cuboid
   CuboidFragment.prototype.getOverlapped = function (anotherFragment) {
     var X = 0, Y = 1, Z = 2;
-    var primitiveA = this.node;
-    var primitiveB = anotherFragment.node;
+    var primitiveA = this.cuboidGeometry;
+    var primitiveB = anotherFragment.cuboidGeometry;
 
     var aBack = primitiveA.getPosition(),
         aDimensions = primitiveA.getDimensions(),
@@ -41,7 +54,7 @@ define([
           bBack[Z] + bDimensions[Z]
         ];
 
-    var overlapped = undefined;
+    var overlapped;
 
     if (
       overlaps(
