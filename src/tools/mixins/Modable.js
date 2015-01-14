@@ -19,6 +19,8 @@ define([], function () {
     redirectToMode('mouseup');
     redirectToMode('mousedown');
     redirectToMode('mousemove');
+    redirectToMode('mouseover');
+    redirectToMode('mouseout');
 
     function redirectToMode(eventName, fromTarget) {
       fromTarget = fromTarget || evtTarget;

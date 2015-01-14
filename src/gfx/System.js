@@ -20,6 +20,8 @@ define([
     this._stage.mousedown = this._onStageMouseDown.bind(this);
     this._stage.mouseup = this._onStageMouseUp.bind(this);
     this._stage.mousemove = this._onStageMouseMove.bind(this);
+    this._stage.mouseover = this._onStageMouseOver.bind(this);
+    this._stage.mouseout = this._onStageMouseOut.bind(this);
     this._activeCamera = new pixi.DisplayObjectContainer();
     this._stage.addChild(this._activeCamera);
     this._layers = [];
@@ -128,6 +130,22 @@ define([
   RenderSystem.prototype._onStageMouseMove = function (evt) {
     var screenCoordiantes = [evt.global.x, evt.global.y];
     this.dispatchEvent('mousemove', {
+      coordinates: screenCoordiantes,
+      viewportCoordinates: this._getViewportCoordinates(screenCoordiantes)
+    });
+  };
+
+  RenderSystem.prototype._onStageMouseOver = function (evt) {
+    var screenCoordiantes = [evt.global.x, evt.global.y];
+    this.dispatchEvent('mouseover', {
+      coordinates: screenCoordiantes,
+      viewportCoordinates: this._getViewportCoordinates(screenCoordiantes)
+    });
+  };
+
+  RenderSystem.prototype._onStageMouseOut = function (evt) {
+    var screenCoordiantes = [evt.global.x, evt.global.y];
+    this.dispatchEvent('mouseout', {
       coordinates: screenCoordiantes,
       viewportCoordinates: this._getViewportCoordinates(screenCoordiantes)
     });

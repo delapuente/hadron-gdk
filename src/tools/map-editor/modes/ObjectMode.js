@@ -15,6 +15,8 @@ define([
     this._isospace = isospace;
     this._isospaceLayer = isospaceLayer;
 
+    this._drawFloorTool = this._root.querySelector('#object-tool-draw-floor');
+
     this._importObjectButton =
       this._root.querySelector('#import-object-button');
     this._importObjectInput = this._root.querySelector('#import-object-input');
@@ -57,6 +59,23 @@ define([
 
   ObjectMode.prototype.onkeyup = function (evt) {
     this._isChangingHeight = evt.ctrlKey;
+  };
+
+  ObjectMode.prototype.onmouseover = function (evt) {
+    var objectList = this._root.querySelector('#object-list');
+    var isDrawing = this._drawFloorTool.checked;
+    var selectedObject = objectList.querySelector('input:checked');
+    if (isDrawing && selectedObject) {
+      this._currentFlow = 'drawing-floor';
+      this.startFlow(this._currentFlow);
+    }
+  };
+
+  ObjectMode.prototype.onmouseout = function (evt) {
+    if (this._currentFlow) {
+      this.endFlow(this._currentFlow);
+      this._currentFlow = null;
+    }
   };
 
   ObjectMode.prototype.onmousedown = function (evt) {
