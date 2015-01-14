@@ -9,22 +9,31 @@ define([
 
   function ObjectMode(control, root, model, isospace, isospaceLayer) {
     UIMode.call(this, control);
+
     this._root = root;
     this._model = model;
     this._isospace = isospace;
     this._isospaceLayer = isospaceLayer;
 
-    // XXX: Change to scene's objects management
-    this._primitiveList = root.querySelector('#primitive-list');
-    this._primitiveLayerAlpha = root.querySelector('#primitive-layer-alpha');
-    this._primitiveLayerAlpha.addEventListener('change', function (evt) {
-      this._isospaceLayer.alpha = evt.target.value;
+    this._importObjectButton =
+      this._root.querySelector('#import-object-button');
+    this._importObjectInput = this._root.querySelector('#import-object-input');
+
+    this._importObjectButton.addEventListener('click', function (evt) {
+      this._importObjectInput.click();
     }.bind(this));
+
+    this._importObjectInput.addEventListener(
+      'change',
+      this._importObject.bind(this)
+    );
 
     this._model
       .addEventListener('objectAddedToMap', this._addObject.bind(this));
     this._model
       .addEventListener('objectRemovedFromMap', this._removeObject.bind(this));
+    this._model
+      .addEventListener('objectAddedToPalette', this._updatePalette.bind(this));
 
     this._lastPointerCoordinates = null;
   }
@@ -97,6 +106,17 @@ define([
     this._lastPointerCoordinates = mapPoint;
   };
 
+  ObjectMode.prototype._importObject = function (evt) {
+    var file = evt.target.files[0];
+    var fileReader = new FileReader();
+    fileReader.onloadend = function () {
+      var stream = fileReader.result;
+      this._model.importObject(stream);
+    }.bind(this);
+    fileReader.readAsText(file);
+    evt.target.value = '';
+  };
+
   ObjectMode.prototype._addObject = function (evt) {
     var objectNode = evt.node;
     ObjectFragment.getFragments(objectNode).forEach(function (objectFragment) {
@@ -111,6 +131,27 @@ define([
   };
 
   ObjectMode.prototype.OBJECT_ID = 1;
+
+  ObjectMode.prototype._updatePalette = function (evt) {
+    var hobject = evt.object;
+    var objectList = this._root.querySelector('#object-list');
+    var nextIndex = objectList.querySelectorAll('li').length;
+    var li = document.createElement('LI');
+    var radio = document.createElement('INPUT');
+    radio.name = 'object';
+    radio.id = 'object-' + this.OBJECT_ID++;
+    radio.type = 'radio';
+    var label = document.createElement('LABEL');
+    label.setAttribute('for', radio.id);
+    // TODO: Compute thumbnail in a smarter way!
+    var img = document.createElement('IMG');
+    img.src = hobject.textures[0].data;
+    img.style.height = '10rem';
+    label.appendChild(img);
+    li.appendChild(radio);
+    li.appendChild(label);
+    objectList.appendChild(li);
+  };
 
   ObjectMode.prototype._updatePrimitiveList = function (fragment) {
     //var li = document.createElement('li');
@@ -133,13 +174,6 @@ define([
     //deleteButton.addEventListener('click', function () {
       //this._model.deletePrimitive(fragment.node);
     //}.bind(this));
-  };
-
-  ObjectMode.prototype._removeFromPrimitiveList =
-  function (primitive) {
-    var li =
-      this._primitiveList.querySelector('[data-id="' + primitive.id + '"]');
-    li.parentNode.removeChild(li);
   };
 
   return ObjectMode;

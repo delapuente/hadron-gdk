@@ -19,7 +19,7 @@ define([
   function MapEditorUI(root, model) {
     this._graphicEntities = {};
     this._gfxSystem = GfxSystem.getSystem();
-    this._gfxSystem.resizeViewport([1280, 1080]);
+    this._gfxSystem.resizeViewport([1024, 768]);
     this._gfxSystem.centerCamera();
     this._gfxSystem.setBgColor(0xF0F0F0);
 
@@ -103,49 +103,8 @@ define([
       .addEventListener('click', function () {
         this._model.clear();
       }.bind(this));
-
-    // Palette management
-    this._root.querySelector('#import-object-button')
-      .addEventListener('click', function (evt) {
-        this._root.querySelector('#import-object-input').click();
-      }.bind(this));
-
-    this._root.querySelector('#import-object-input')
-      .addEventListener('change', function (evt) {
-        var file = evt.target.files[0];
-        var fileReader = new FileReader();
-        fileReader.onloadend = function () {
-          var stream = fileReader.result;
-          this._model.importObject(stream);
-        }.bind(this);
-        fileReader.readAsText(file);
-        evt.target.value = '';
-      }.bind(this));
-
-    this._model.addEventListener('objectAddedToPalette', function (evt) {
-      this._updatePalette(evt.object);
-    }.bind(this));
   }
   S.theClass(MapEditorUI).mix(Modable);
-
-  MapEditorUI.prototype._updatePalette = function (hobject) {
-    var objectList = this._root.querySelector('#object-list');
-    var nextIndex = objectList.querySelectorAll('li').length;
-    var li = document.createElement('LI');
-    // TODO: Compute thumbnail in a smarter way!
-    var img = document.createElement('IMG');
-    img.src = hobject.textures[0].data;
-    img.style.height = '10rem';
-    var addToMapButton = document.createElement('BUTTON');
-    addToMapButton.textContent = 'Add to map';
-    addToMapButton.dataset.index = nextIndex;
-    addToMapButton.addEventListener('click', function (evt) {
-      this._model.addToMap(evt.target.dataset.index);
-    }.bind(this));
-    li.appendChild(img);
-    li.appendChild(addToMapButton);
-    objectList.appendChild(li);
-  };
 
   MapEditorUI.prototype._download = function (stream) {
     var download = this._root.querySelector('#download-object');

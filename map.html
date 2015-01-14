@@ -39,8 +39,15 @@
         <a id="download-object" download="hadron-object.hob" href="#" hidden></a>
         <input type="file" id="import-input" hidden />
       </fieldset>
-      <fieldset>
-        <legend>Palette</legend>
+      <fieldset id="object-tools">
+        <legend>Object tools</legend>
+        <fieldset>
+          <input type="radio" name="object-tool" id="object-tool-delete-floor"
+          checked />
+          <label for="object-tool-delete-floor">Delete floor</label>
+          <input type="radio" name="object-tool" id="object-tool-draw-floor" />
+          <label for="object-tool-draw-floor">Draw floor</label>
+        </fieldset>
         <button id="import-object-button">Import</button>
         <ol id="object-list" class="element-list">
         </ol>
@@ -62,13 +69,6 @@
         <legend>Textures</legend>
         <input id="add-new-texture" accept="image/*" type="file" /> 
         <ol id="texture-list" class="element-list">
-        </ol>
-      </fieldset>
-      <fieldset id="object-tools">
-        <legend>Primitives</legend>
-        <label>Layer transparency: <input id="primitive-layer-alpha"
-        type="number" step="0.05" min="0.0"  max="1.0" value="0.8" /></label>
-        <ol id="object-list" class="element-list">
         </ol>
       </fieldset>
     </section>

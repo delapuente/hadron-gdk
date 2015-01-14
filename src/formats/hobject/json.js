@@ -11,9 +11,7 @@ define([
   var FORMAT = 'json';
   var CLASS = 'HObject';
 
-  function serialize(hobject) {
-    var jsonString = null;
-
+  function simplify(hobject) {
     var simple = {
       nodes: [],
       textures: [],
@@ -39,25 +37,17 @@ define([
           data: texture.getSourceData()
         });
       });
-
-      jsonString = JSON.stringify(simple);
     }
     else {
       console.error('Could not serialize an object from a class different of' +
                     'HObject');
+      simple = undefined;
     }
-
-    return jsonString;
+    return simple;
   }
 
-  function deserialize(jsonString) {
-    var simple = null;
+  function enrich(simple) {
     var hobject = null;
-
-    try {
-      simple = JSON.parse(jsonString);
-    } catch (e) {}
-
 
     if (!simple) {
       console.error('JSON representation is not valid.');
@@ -84,6 +74,25 @@ define([
     return hobject;
   }
 
+  function serialize(hobject) {
+    var jsonString = null;
+    var simpleObject = simplify(hobject);
+    if (typeof simpleObject !== 'undefined') {
+      jsonString = JSON.stringify(simpleObject);
+    }
+    return jsonString;
+  }
+
+  function deserialize(jsonString) {
+    var simple = null;
+
+    try {
+      simple = JSON.parse(jsonString);
+    } catch (e) {}
+
+    return enrich(simple);
+  }
+
   function matchConstrains(simple) {
     return simple.__class__   === CLASS &&
            simple.__format__  === FORMAT &&
@@ -91,6 +100,8 @@ define([
   }
 
   return {
+    simplify: simplify,
+    enrich: enrich,
     serialize: serialize,
     deserialize: deserialize
   };
