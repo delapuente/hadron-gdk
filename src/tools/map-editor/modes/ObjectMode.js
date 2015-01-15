@@ -64,10 +64,17 @@ define([
   ObjectMode.prototype.onmouseover = function (evt) {
     var objectList = this._root.querySelector('#object-list');
     var isDrawing = this._drawFloorTool.checked;
-    var selectedObject = objectList.querySelector('input:checked');
-    if (isDrawing && selectedObject) {
+    var selectedObjectOption = objectList.querySelector('input:checked');
+
+    if (isDrawing && selectedObjectOption) {
       this._currentFlow = 'drawing-floor';
       this.startFlow(this._currentFlow);
+
+      this._lastPointerCoordinates =
+        metrics.getMapCoordinates(evt.viewportCoordinates);
+
+      this._lastPaletteId = selectedObjectOption.dataset.paletteId;
+      this._addPlaceholder(this._lastPaletteId, this._lastPointerCoordinates);
     }
   };
 
@@ -75,20 +82,28 @@ define([
     if (this._currentFlow) {
       this.endFlow(this._currentFlow);
       this._currentFlow = null;
+      this._model.deleteObject(this._model.getSelectedObject());
+      this._isospace.removeNode(this._model.getSelectedObject());
+      this._movingObject = false;
     }
   };
 
   ObjectMode.prototype.onmousedown = function (evt) {
-    this.startFlow('moving-object');
-    this._movingObject = true;
-    this._lastPointerCoordinates =
-      metrics.getMapCoordinates(evt.viewportCoordinates);
+    if (this._currentFlow === 'drawing-floor') {
+      this._lastPointerCoordinates =
+        metrics.getMapCoordinates(evt.viewportCoordinates);
+      this._addPlaceholder(this._lastPaletteId, this._lastPointerCoordinates);
+    }
   };
 
   ObjectMode.prototype.onmouseup = function () {
-    this._movingObject = false;
-    this._model.selectObject(null);
-    this.endFlow('moving-object');
+  };
+
+  ObjectMode.prototype._addPlaceholder = function (paletteId, position) {
+    var selectedObject = this._model.palette[paletteId];
+    var restrictions = { y: -selectedObject.getLocalBounds().sizeY };
+    this._model.addToMap(paletteId, position);
+    this._movingObject = true;
   };
 
   ObjectMode.prototype.onmousemove = function (evt) {
@@ -104,7 +119,7 @@ define([
     }
     else {
       restrictions = {
-        y: this._lastPointerCoordinates[1],
+        y: this._lastPointerCoordinates[1]
       };
     }
 
@@ -142,6 +157,7 @@ define([
       this._isospace.addFragment(objectFragment);
       this._updatePrimitiveList(objectFragment);
     }.bind(this));
+    this._model.selectObject(objectNode);
   };
 
   ObjectMode.prototype._removeObject = function (evt) {
@@ -160,6 +176,7 @@ define([
     radio.name = 'object';
     radio.id = 'object-' + this.OBJECT_ID++;
     radio.type = 'radio';
+    radio.dataset.paletteId = nextIndex;
     var label = document.createElement('LABEL');
     label.setAttribute('for', radio.id);
     // TODO: Compute thumbnail in a smarter way!
@@ -185,14 +202,6 @@ define([
     fragment.render.addEventListener('mouseover', function () {
       this._model.focusObject(fragment.node);
     }.bind(this));
-
-    fragment.render.addEventListener('mousedown', function () {
-      this._model.selectObject(fragment.node);
-    }.bind(this));
-
-    //deleteButton.addEventListener('click', function () {
-      //this._model.deletePrimitive(fragment.node);
-    //}.bind(this));
   };
 
   return ObjectMode;

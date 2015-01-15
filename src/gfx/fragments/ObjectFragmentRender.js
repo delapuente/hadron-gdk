@@ -56,7 +56,7 @@ define([
 
     // Mask
     var maskLayer = new this._gfxSystem.Graphics();
-    var screenPosition = p(cuboidGeometry.getPosition());
+    var screenPosition = p(cuboidGeometry.getLocalPosition());
     var dimensions = cuboidGeometry.getDimensions();
     var sizeX = dimensions[0];
     var sizeY = dimensions[1];

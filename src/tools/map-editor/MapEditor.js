@@ -71,7 +71,7 @@ define([
     return geometryNode;
   };
 
-  MapEditor.prototype.deletePrimitive = function (hobject) {
+  MapEditor.prototype.deleteObject = function (hobject) {
     if (this._focusedObject === hobject) {
       this.focusObject(null);
     }
@@ -80,7 +80,7 @@ define([
     }
     this.objects.splice(this.objects.indexOf(hobject), 1);
     this.dispatchEvent('objectRemovedFromMap', {
-      node: object
+      node: hobject
     });
   };
 
@@ -165,7 +165,7 @@ define([
     }.bind(this));
     var primitives = this.primitives.slice(0);
     primitives.forEach(function (primitive) {
-      this.deletePrimitive(primitive);
+      this.deleteObject(primitive);
     }.bind(this));
   };
 

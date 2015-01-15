@@ -264,7 +264,7 @@ define([
         this._togglePrimitive.click();
       }
     }
-    if (flowName.startsWith('modify-primitive-') &&
+    if (flowName.indexOf('modify-primitive-') === 0 &&
         this._xzHandler.getState() === 'NON_READY' &&
         this._yHandler.getState() === 'NON_READY') {
       this.changeMode(this._primitiveMode);

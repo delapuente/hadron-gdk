@@ -19,6 +19,10 @@ define([
   }
   S.theClass(ObjectPartialGeometry).inheritsFrom(Model);
 
+  ObjectPartialGeometry.prototype.getLocalPosition = function () {
+    return this._primitiveNode.getPosition();
+  };
+
   ObjectPartialGeometry.prototype.getPosition = function () {
     var objectPosition = this._objectNode.getPosition();
     var localOffset = this._primitiveNode.getPosition();

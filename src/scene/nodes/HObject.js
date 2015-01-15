@@ -27,10 +27,13 @@ define([
       maxZ = Math.max(maxZ, nodePos[2] + nodeDim[2]);
     });
 
-    return [
-      [minX, minY, minZ],
-      [maxX, maxY, maxZ]
-    ];
+    return {
+      min: [minX, minY, minZ],
+      max: [maxX, maxY, maxZ],
+      get sizeX() { return this.max[0] - this.min[0]; },
+      get sizeY() { return this.max[1] - this.min[1]; },
+      get sizeZ() { return this.max[2] - this.min[2]; }
+    };
   };
 
   return HObject;
