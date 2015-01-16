@@ -15,6 +15,6 @@ define([
 ], function (MapEditor, MapEditorUI) {
   'use strict';
 
-  var mapEditor = new MapEditor([50, 50]);
+  var mapEditor = window.mapEditor = new MapEditor([50, 50]);
   var ui = new MapEditorUI(document, mapEditor);
 });

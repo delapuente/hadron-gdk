@@ -85,6 +85,7 @@ define([
       this._model.deleteObject(this._model.getSelectedObject());
       this._isospace.removeNode(this._model.getSelectedObject());
       this._movingObject = false;
+      this._drawing = false;
     }
   };
 
@@ -92,11 +93,16 @@ define([
     if (this._currentFlow === 'drawing-floor') {
       this._lastPointerCoordinates =
         metrics.getMapCoordinates(evt.viewportCoordinates);
-      this._addPlaceholder(this._lastPaletteId, this._lastPointerCoordinates);
+      if (this._model.canBePlaced(this._model.getSelectedObject())) {
+        // As a side effect, this leaves the current placeholder in position.
+        this._addPlaceholder(this._lastPaletteId, this._lastPointerCoordinates);
+      }
+      this._drawing = true;
     }
   };
 
   ObjectMode.prototype.onmouseup = function () {
+    this._drawing = false;
   };
 
   ObjectMode.prototype._addPlaceholder = function (paletteId, position) {
@@ -136,6 +142,11 @@ define([
       currentPosition[1] + deltaY,
       currentPosition[2] + deltaZ
     ]);
+
+    // Continuum drawing mode
+    if (this._drawing && this._model.canBePlaced(selectedObject)) {
+      this._addPlaceholder(this._lastPaletteId, mapPoint);
+    }
 
     this._lastPointerCoordinates = mapPoint;
   };

@@ -108,6 +108,12 @@ define([
     return this._selectedObject;
   };
 
+  MapEditor.prototype.canBePlaced = function (hobject) {
+    return !this.objects.some(function (anotherObject) {
+      return hobject !== anotherObject && hobject.intersects(anotherObject);
+    });
+  };
+
   MapEditor.prototype.selectBackground = function (primitive) {
     this._selectedBackground = texture;
     this.dispatchEvent('textureSelected', {
