@@ -1,0 +1,15 @@
+{
+  "name": "hadron-gdk",
+  "version": "axion-15.01",
+  "description": "",
+  "main": "gdk.html",
+  "scripts": {
+  },
+  "author": "Salvador de la Puente González",
+  "window": {
+    "toolbar": true,
+    "width": 800,
+    "height": 600
+  },
+  "license": "MIT"
+}
