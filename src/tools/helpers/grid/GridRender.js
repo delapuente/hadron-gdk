@@ -42,12 +42,14 @@ define([
 
   GridRender.prototype.drawGrid = function (sizeX, sizeZ, viewport) {
     var p = metrics.getScreenCoordinates.bind(metrics);
+    var height = this._grid.getHeight();
+    var yPlane = { y: height };
 
     var sceneView = {
-      topLeft: metrics.getMapCoordinates(viewport.topLeft),
-      topRight: metrics.getMapCoordinates(viewport.topRight),
-      bottomRight: metrics.getMapCoordinates(viewport.bottomRight),
-      bottomLeft: metrics.getMapCoordinates(viewport.bottomLeft)
+      topLeft: metrics.getMapCoordinates(viewport.topLeft, yPlane),
+      topRight: metrics.getMapCoordinates(viewport.topRight, yPlane),
+      bottomRight: metrics.getMapCoordinates(viewport.bottomRight, yPlane),
+      bottomLeft: metrics.getMapCoordinates(viewport.bottomLeft, yPlane)
     };
     var startX = Math.floor(sceneView.topLeft[0] / sizeX) * sizeX;
     var endX = Math.ceil(sceneView.bottomRight[0] / sizeX) * sizeX;
@@ -58,18 +60,18 @@ define([
     graphic.clear();
     graphic.lineStyle(1, 0x333333, 1.0);
     for (var x = startX; x < endX; x += sizeX) {
-      graphic.moveTo.apply(graphic, p([x, 0, startZ]));
-      graphic.lineTo.apply(graphic, p([x, 0, endZ]));
+      graphic.moveTo.apply(graphic, p([x, height, startZ]));
+      graphic.lineTo.apply(graphic, p([x, height, endZ]));
     }
     for (var z = startZ; z < endZ; z += sizeZ) {
-      graphic.moveTo.apply(graphic, p([startX, 0, z]));
-      graphic.lineTo.apply(graphic, p([endX, 0, z]));
+      graphic.moveTo.apply(graphic, p([startX, height, z]));
+      graphic.lineTo.apply(graphic, p([endX, height, z]));
     }
     graphic.lineStyle(2, 0xFF0000, 1.0);
-    graphic.moveTo.apply(graphic, p([0, 0, startZ]));
-    graphic.lineTo.apply(graphic, p([0, 0, endZ]));
-    graphic.moveTo.apply(graphic, p([startX, 0, 0]));
-    graphic.lineTo.apply(graphic, p([endX, 0, 0]));
+    graphic.moveTo.apply(graphic, p([0, height, startZ]));
+    graphic.lineTo.apply(graphic, p([0, height, endZ]));
+    graphic.moveTo.apply(graphic, p([startX, height, 0]));
+    graphic.lineTo.apply(graphic, p([endX, height, 0]));
   };
 
   return GridRender;

@@ -115,33 +115,11 @@ define([
   ObjectMode.prototype.onmousemove = function (evt) {
     var selectedObject = this._model.getSelectedObject();
     if (!this._movingObject || !selectedObject) { return; }
-
-    var restrictions;
-    if (this._isChangingHeight) {
-      restrictions = {
-        x: this._lastPointerCoordinates[0],
-        z: this._lastPointerCoordinates[2]
-      };
-    }
-    else {
-      restrictions = {
-        y: this._lastPointerCoordinates[1]
-      };
-    }
-
-    var mapPoint = metrics.getMapCoordinates(
-      evt.viewportCoordinates,
-      restrictions
-    );
-    var deltaX = mapPoint[0] - this._lastPointerCoordinates[0];
-    var deltaY = mapPoint[1] - this._lastPointerCoordinates[1];
-    var deltaZ = mapPoint[2] - this._lastPointerCoordinates[2];
-    var currentPosition = selectedObject.getPosition();
-    selectedObject.setPosition([
-      currentPosition[0] + deltaX,
-      currentPosition[1] + deltaY,
-      currentPosition[2] + deltaZ
-    ]);
+    // The Y restriction must be the floor height, currently, 0
+    var mapPoint = metrics.getMapCoordinates(evt.viewportCoordinates);
+    var newPosition = mapPoint;
+    var fixedPosition = this._model.grid.getNearestPoint(newPosition);
+    selectedObject.setPosition(fixedPosition);
 
     // Continuum drawing mode
     if (this._drawing && this._model.canBePlaced(selectedObject)) {
