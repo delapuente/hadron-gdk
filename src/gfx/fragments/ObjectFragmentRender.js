@@ -78,6 +78,10 @@ define([
 
     this.graphic.addChild(maskLayer);
     this.graphic.addChild(textureLayer);
+
+    // XXX: Remove in addition of [FLIP_Y] in pix.dev.js
+    maskLayer.__fixFlipY = true;
+    this.graphic.cacheAsBitmap = true;
   };
 
   ObjectFragmentRender.prototype.placeFragment = function (position) {

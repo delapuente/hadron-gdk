@@ -38,6 +38,23 @@ define([
     this._renderer.render(this._stage);
   };
 
+  // TODO: Look for a better name
+  RenderSystem.prototype.freezeAsSprite = function (textureLayer, maskLayer) {
+    var W = textureLayer.width;
+    var H = textureLayer.height;
+    var renderer = this._renderer; // new pixi.CanvasRenderer(W,H);
+    var renderTexture = new pixi.RenderTexture(W, H, renderer);
+    var sprite = new pixi.Sprite(renderTexture);
+    var aux = new pixi.DisplayObjectContainer();
+    aux.addChild(maskLayer);
+    maskLayer.x = maskLayer.x;
+    maskLayer.y = maskLayer.y;
+    //textureLayer.x = textureLayer.y = 0;
+    //textureLayer.mask = maskLayer;
+    renderTexture.render(aux);
+    return sprite;
+  };
+
   RenderSystem.prototype.setBgColor = function (color) {
     this._stage.setBackgroundColor(color);
   };

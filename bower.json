@@ -25,6 +25,6 @@
   "dependencies": {
     "strongforce": "~1.1.1",
     "requirejs": "~2.1.14",
-    "pixi.js": "GoodBoyDigital/pixi.js#~2.2.0"
+    "pixi.js": "GoodBoyDigital/pixi.js#~2.2"
   }
 }
