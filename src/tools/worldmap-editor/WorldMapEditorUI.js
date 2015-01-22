@@ -5,13 +5,8 @@ define([
   'gfx/System',
   'lib/strongforce',
   'scene/metrics',
-  'tools/map-editor/modes/ObjectMode',
-  'gfx/Isospace',
-  'gfx/fragments/ObjectFragment',
-  'tools/helpers/selections/SimpleSelector',
-  'tools/helpers/surfaces/Shadow',
-], function (S, Modable, GfxSystem, strongforce, metrics, ObjectMode, Isospace,
-             ObjectFragment, SimpleSelector, Shadow) {
+  'tools/worldmap-editor/modes/LocationMode',
+], function (S, Modable, GfxSystem, strongforce, metrics, LocationMode) {
   'use strict';
 
   var Loop = strongforce.Loop;
@@ -24,12 +19,14 @@ define([
     this._gfxSystem.setBgColor(model._backgroundColor);
 
     this._mapLayer = this._gfxSystem.newLayer('map-layer');
+    this._locationsLayer = this._gfxSystem.newLayer('locations-layer');
 
     var placeholder = root.querySelector('#canvas-placeholder');
     placeholder.parentNode.replaceChild(this._gfxSystem.view, placeholder);
 
     this._root = root;
 
+    // Load background
     this._root.getElementById('select-background-button')
     .addEventListener('click', function () {
       this._root.getElementById('select-background-input').click();
@@ -38,11 +35,20 @@ define([
     this._root.getElementById('select-background-input')
     .addEventListener('change', this._loadBackground.bind(this));
 
+    // Change to locations mode
+    this._root
+    .querySelector('input[name="current-tool-option"][value="place-location"]')
+    .addEventListener('click', function () {
+      this.changeMode(this._locationMode);
+    }.bind(this));
+
     this._model = model;
     this._model.render = this._render.bind(this);
 
     this._model
     .addEventListener('backgroundSet', this._updateBackground.bind(this));
+
+    this._setupControlModes();
 
     this._loop = new Loop({ rootModel: model });
     this._loop.start();
@@ -75,25 +81,9 @@ define([
     download.click();
   };
 
-  WorldMapEditorUI.prototype._onObjectFocused = function (evt) {
-    if (this._currentFlow === 'moving-object') { return; }
-  };
-
   WorldMapEditorUI.prototype._setupControlModes = function () {
-    //this._textureControlMode = new TextureMode(
-      //this,
-      //this._textureTools,
-      //this._model,
-      //this._textureLayer
-    //);
-    this._objectMode = new ObjectMode(
-      this,
-      this._objectTools,
-      this._model,
-      this._isospace,
-      this._isospaceLayer
-    );
-
+    this._locationMode =
+      new LocationMode(this, this._model, this._locationsLayer);
     this.setupModable(this._gfxSystem);
   };
 
@@ -107,13 +97,6 @@ define([
     console.log('Ending flow ' + flowName);
     this.unlockUIMode();
     this._currentFlow = null;
-  };
-
-  WorldMapEditorUI.prototype._changeCellSize = function () {
-    var sizeX = parseInt(this._root.querySelector('#select-grid-size-x').value);
-    var sizeZ = parseInt(this._root.querySelector('#select-grid-size-z').value);
-    if (isNaN(sizeX) || isNaN(sizeZ)) { return; }
-    this._model.grid.setCellSize([sizeX, sizeZ]);
   };
 
   WorldMapEditorUI.prototype._render = function (isPostCall, alpha) {

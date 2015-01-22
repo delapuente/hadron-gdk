@@ -4,6 +4,19 @@ define([
 
   var metrics = {
 
+    distance: function (pointA, pointB) {
+      if (pointA.length !== pointB.length) {
+        console.warn('Points does not have the same dimension.');
+      }
+      var diff = pointB.map(function (dimensionValue, dimension) {
+        return dimensionValue - pointA[dimension];
+      });
+      var sum = diff.reduce(function (sum, value) {
+        return (value * value) + sum;
+      }, 0);
+      return Math.sqrt(sum);
+    },
+
     getScreenCoordinates: function (mapCoordinates) {
       var x = mapCoordinates[0];
       var y = mapCoordinates[1];
