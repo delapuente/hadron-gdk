@@ -31,7 +31,7 @@ define(function(require) {
         else if (typeof a2 === 'undefined') {
           throw new Error('provide a `name` for values');
         }
-        Object.defineProperty(object, name, { value: value });
+        Object.defineProperty(object, name, { value: value, writable: true });
         return this;
       },
 
