@@ -26,6 +26,9 @@ define([
       if (name) {
         mapLocation = this._model.newMapLocation(point, name);
       }
+      else {
+        this.endFlow('placing-location');
+      }
     }
   };
 
