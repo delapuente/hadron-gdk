@@ -1,15 +1,12 @@
 
 define([
   'S',
-  'lib/strongforce',
-  'tools/worldmap-editor/LocationRender'
-], function (S, strongforce, LocationRender) {
+  'lib/strongforce'
+], function (S, strongforce) {
   'use strict';
 
   var Model = strongforce.Model;
 
-  // XXX: Maybe this class end outside world editor as it is convenient to
-  // have named nodes.
   function Location(position, name) {
     Model.apply(this, arguments);
     S.theObject(this)
@@ -19,8 +16,6 @@ define([
     this.setName(name);
   }
   S.theClass(Location).inheritsFrom(Model);
-
-  Location.prototype.render = LocationRender;
 
   Location.prototype.getPosition = function () {
     if (!this._position) { return null; }

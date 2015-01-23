@@ -1,8 +1,9 @@
 
 define([
   'S',
-  'tools/mixins/UIMode'
-], function (S, UIMode) {
+  'tools/mixins/UIMode',
+  'gfx/worldmap/LandMark'
+], function (S, UIMode, LandMark) {
   'use strict';
 
   function LocationMode(control, model, locationsLayer) {
@@ -45,7 +46,8 @@ define([
   };
 
   LocationMode.prototype._addLocation = function (evt) {
-    this._locationsLayer.addChild(evt.mapLocation.render.graphic);
+    var landmark = new LandMark(evt.mapLocation);
+    this._locationsLayer.addChild(landmark.render.graphic);
   };
 
   return LocationMode;

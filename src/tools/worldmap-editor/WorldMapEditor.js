@@ -3,7 +3,7 @@ define([
   'S',
   'lib/strongforce',
   'scene/metrics',
-  'tools/worldmap-editor/Location',
+  'worldmap/Location',
   'formats/hobject/json'
 ], function (S, strongforce, metrics, Location, HObject2JSON) {
   'use strict';
