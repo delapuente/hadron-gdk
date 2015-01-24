@@ -4,8 +4,9 @@ define([
   'lib/strongforce',
   'scene/metrics',
   'worldmap/Location',
+  'worldmap/Path',
   'formats/hobject/json'
-], function (S, strongforce, metrics, Location, HObject2JSON) {
+], function (S, strongforce, metrics, Location, Path, HObject2JSON) {
   'use strict';
 
   var Model = strongforce.Model;
@@ -49,6 +50,15 @@ define([
       mapLocation: newLocation
     });
     return newLocation;
+  };
+
+  WorldMapEditor.prototype.newPath = function (start, end, points) {
+    var newPath = new Path(start, end, points);
+    this.paths.push(newPath);
+    this.dispatchEvent('pathAdded', {
+      path: newPath
+    });
+    return newPath;
   };
 
   WorldMapEditor.prototype.selectLocation = function (mapLocation) {

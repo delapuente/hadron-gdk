@@ -107,11 +107,25 @@ define([
     var oldPosition = this.getCameraPosition();
     this._activeCamera.position.x = where[0] + this._renderer.width / 2;
     this._activeCamera.position.y = where[1] + this._renderer.height / 2;
+    this._dispatchViewportChanged(oldPosition);
     this.dispatchEvent('viewportMoved', {
       oldPosition: oldPosition,
       position: this.getCameraPosition()
     });
     this._dispatchViewportChanged();
+  };
+
+  RenderSystem.prototype.setCameraPosition = function (where) {
+    this._activeCamera.position.x = where[0];
+    this._activeCamera.position.y = where[1];
+    this._dispatchViewportChanged();
+  };
+
+  RenderSystem.prototype._dispatchViewportMoved = function (oldPosition) {
+    this.dispatchEvent('viewportMoved', {
+      oldPosition: oldPosition,
+      position: this.getCameraPosition()
+    });
   };
 
   RenderSystem.prototype.getCameraPosition = function () {

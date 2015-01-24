@@ -6,7 +6,9 @@ define([
   'lib/strongforce',
   'scene/metrics',
   'tools/worldmap-editor/modes/LocationMode',
-], function (S, Modable, GfxSystem, strongforce, metrics, LocationMode) {
+  'tools/worldmap-editor/modes/PathMode'
+], function (S, Modable, GfxSystem, strongforce, metrics, LocationMode,
+             PathMode) {
   'use strict';
 
   var Loop = strongforce.Loop;
@@ -19,6 +21,7 @@ define([
     this._gfxSystem.setBgColor(model._backgroundColor);
 
     this._mapLayer = this._gfxSystem.newLayer('map-layer');
+    this._pathsLayer = this._gfxSystem.newLayer('paths-layer');
     this._locationsLayer = this._gfxSystem.newLayer('locations-layer');
 
     var placeholder = root.querySelector('#canvas-placeholder');
@@ -40,6 +43,12 @@ define([
     .querySelector('input[name="current-tool-option"][value="place-location"]')
     .addEventListener('click', function () {
       this.changeMode(this._locationMode);
+    }.bind(this));
+
+    this._root
+    .querySelector('input[name="current-tool-option"][value="draw-path"]')
+    .addEventListener('click', function () {
+      this.changeMode(this._pathMode);
     }.bind(this));
 
     this._model = model;
@@ -84,6 +93,8 @@ define([
   WorldMapEditorUI.prototype._setupControlModes = function () {
     this._locationMode =
       new LocationMode(this, this._model, this._locationsLayer);
+    this._pathMode =
+      new PathMode(this, this._model, this._pathsLayer);
     this.setupModable(this._gfxSystem);
   };
 

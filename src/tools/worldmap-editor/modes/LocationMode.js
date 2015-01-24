@@ -27,9 +27,8 @@ define([
       if (name) {
         mapLocation = this._model.newMapLocation(point, name);
       }
-      else {
-        this.endFlow('placing-location');
-      }
+      // XXX: when using prompt, the onmouseup event is lost
+      this.onmouseup();
     }
   };
 
