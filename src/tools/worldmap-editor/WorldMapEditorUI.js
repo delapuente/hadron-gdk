@@ -45,11 +45,30 @@ define([
       this.changeMode(this._locationMode);
     }.bind(this));
 
+    // Change to path mode
     this._root
     .querySelector('input[name="current-tool-option"][value="draw-path"]')
     .addEventListener('click', function () {
       this.changeMode(this._pathMode);
     }.bind(this));
+
+    // Move the camera
+    window.onkeypress = function (evt) {
+      var key = String.fromCharCode(evt.charCode).toUpperCase();
+      var deltas = {
+        'W': [0, -10],
+        'S': [0, +10],
+        'A': [-10, 0],
+        'D': [+10, 0]
+      };
+      var delta = deltas[key];
+      var currentPosition = this._gfxSystem.getCameraPosition();
+      var newPosition = [
+        currentPosition[0] - delta[0],
+        currentPosition[1] - delta[1]
+      ];
+      this._gfxSystem.setCameraPosition(newPosition);
+    }.bind(this);
 
     this._model = model;
     this._model.render = this._render.bind(this);
