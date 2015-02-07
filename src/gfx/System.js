@@ -17,6 +17,7 @@ define([
 
     this._renderer = pixi.autoDetectRenderer(width, height);
     this._stage = new pixi.Stage();
+    this._stage.click = this._onStageClick.bind(this);
     this._stage.mousedown = this._onStageMouseDown.bind(this);
     this._stage.mouseup = this._onStageMouseUp.bind(this);
     this._stage.mousemove = this._onStageMouseMove.bind(this);
@@ -139,6 +140,14 @@ define([
     this.dispatchEvent('viewportChanged', {
       dimensions: [this._renderer.width, this._renderer.height],
       position: [this._activeCamera.position.x, this._activeCamera.position.y]
+    });
+  };
+
+  RenderSystem.prototype._onStageClick = function (evt) {
+    var screenCoordiantes = [evt.global.x, evt.global.y];
+    this.dispatchEvent('click', {
+      coordinates: screenCoordiantes,
+      viewportCoordinates: this._getViewportCoordinates(screenCoordiantes)
     });
   };
 

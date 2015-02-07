@@ -21,6 +21,7 @@ define([], function () {
     redirectToMode('mousemove');
     redirectToMode('mouseover');
     redirectToMode('mouseout');
+    redirectToMode('click');
 
     function redirectToMode(eventName, fromTarget) {
       fromTarget = fromTarget || evtTarget;

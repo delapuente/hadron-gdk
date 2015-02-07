@@ -2,19 +2,54 @@ define([
 ], function () {
   'use strict';
 
+  function dimensionWarn() {
+    console.log('Items are of different dimensions!');
+  }
+
   var metrics = {
 
-    distance: function (pointA, pointB) {
-      if (pointA.length !== pointB.length) {
-        console.warn('Points does not have the same dimension.');
-      }
-      var diff = pointB.map(function (dimensionValue, dimension) {
-        return dimensionValue - pointA[dimension];
-      });
-      var sum = diff.reduce(function (sum, value) {
-        return (value * value) + sum;
+    mul: function (scalar, v) {
+      return v.map(function (value) { return scalar * value;  });
+    },
+
+    add: function (v, w) {
+      if (v.length !== w.length) { dimensionWarn(); }
+      return v.map(function (value, d) { return value + w[d]; });
+    },
+
+    sub: function (v, w) {
+      return this.add(v, this.mul(-1, w));
+    },
+
+    dot: function (v, w) {
+      if (v.length !== w.length) { dimensionWarn(); }
+      return v.reduce(function (partial, _, d) {
+        return partial + (v[d] * w[d]);
       }, 0);
-      return Math.sqrt(sum);
+    },
+
+    distance: function (pointA, pointB) {
+      if (pointA.length !== pointB.length) { dimensionWarn(); }
+      var diff = this.sub(pointB, pointA);
+      var squaredDistance = this.dot(diff, diff);
+      return Math.sqrt(squaredDistance);
+    },
+
+    segmentDistance: function (segment, p) {
+      var v = segment[0]; // start
+      var w = segment[1]; // end
+      var vw = this.sub(w, v); // (w-v)
+      var squaredLength = this.dot(vw, vw);
+      // XXX: http://stackoverflow.com/questions/849211/shortest-distance-between-a-point-and-a-line-segment
+      // Consider the line extending the segment, parameterized as v + t(w - v)
+      // We find projection of point p onto the line.
+      // It falls where t = -[(p-v) . (w-v)] / |w-v|^2
+      // The expression is negated due to the inversion of Y axis
+      var t = -this.dot(this.sub(v, p), vw) / squaredLength;
+      if (t < 0) { return this.distance(v, p);  }
+      if (t > 1) { return this.distance(w, p);  }
+      var projection = this.add(v, this.mul(t, vw));
+      return this.distance(p, projection);
     },
 
     getScreenCoordinates: function (mapCoordinates) {

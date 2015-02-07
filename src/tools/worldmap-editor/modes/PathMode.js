@@ -12,6 +12,7 @@ define([
     this._pathsLayer = pathsLayer;
 
     this._model.addEventListener('pathAdded', this._addPath.bind(this));
+    this._model.addEventListener('pathRemoved', this._delPath.bind(this));
   }
   S.theClass(PathMode).inheritsFrom(UIMode);
 
@@ -74,7 +75,13 @@ define([
 
   PathMode.prototype._addPath = function (evt) {
     var track = new Track(evt.path);
+    evt.path.__track = track; // TODO: maps needed!
     this._pathsLayer.addChild(track.render.graphic);
+  };
+
+  PathMode.prototype._delPath = function (evt) {
+    var track = evt.path.__track;
+    this._pathsLayer.removeChild(track.render.graphic);
   };
 
   return PathMode;

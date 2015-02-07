@@ -6,9 +6,10 @@ define([
   'lib/strongforce',
   'scene/metrics',
   'tools/worldmap-editor/modes/LocationMode',
-  'tools/worldmap-editor/modes/PathMode'
+  'tools/worldmap-editor/modes/PathMode',
+  'tools/worldmap-editor/modes/DeleteMode'
 ], function (S, Modable, GfxSystem, strongforce, metrics, LocationMode,
-             PathMode) {
+             PathMode, DeleteMode) {
   'use strict';
 
   var Loop = strongforce.Loop;
@@ -50,6 +51,13 @@ define([
     .querySelector('input[name="current-tool-option"][value="draw-path"]')
     .addEventListener('click', function () {
       this.changeMode(this._pathMode);
+    }.bind(this));
+
+    // Change to delete mode
+    this._root
+    .querySelector('input[name="current-tool-option"][value="delete"]')
+    .addEventListener('click', function () {
+      this.changeMode(this._deleteMode);
     }.bind(this));
 
     // Move the camera
@@ -114,6 +122,8 @@ define([
       new LocationMode(this, this._model, this._locationsLayer);
     this._pathMode =
       new PathMode(this, this._model, this._pathsLayer);
+    this._deleteMode =
+      new DeleteMode(this, this._model);
     this.setupModable(this._gfxSystem);
   };
 

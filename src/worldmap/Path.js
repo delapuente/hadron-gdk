@@ -1,8 +1,9 @@
 
 define([
   'S',
-  'lib/strongforce'
-], function (S, strongforce) {
+  'lib/strongforce',
+  'scene/metrics'
+], function (S, strongforce, metrics) {
   'use strict';
 
   var Model = strongforce.Model;
@@ -21,6 +22,30 @@ define([
       .has('_interPoints', points);
   }
   S.theClass(Path).inheritsFrom(Model);
+
+  Path.prototype.distance = function (point) {
+    var segments = this.getSegments();
+    var minDistance = segments.reduce(function (minDistance, segment) {
+      var distance = metrics.segmentDistance(segment, point);
+      if (distance < minDistance) { minDistance = distance; }
+      return minDistance;
+    }, Infinity);
+    return minDistance;
+  };
+
+  Path.prototype.getSegments = function (point) {
+    var segments = [];
+    var points = this.getPoints();
+    for (var i = 1; i < points.length; i++) {
+      segments.push([points[i-1], points[i]]);
+    }
+    return segments;
+  };
+
+  Path.prototype.includes = function (mapLocation) {
+    // TODO: extend to include points
+    return mapLocation === this.start || mapLocation === this.end;
+  };
 
   Path.prototype.getPoints = function () {
     var startPoint = this.start.getPosition();

@@ -12,6 +12,8 @@ define([
     this._locationsLayer = locationsLayer;
 
     this._model.addEventListener('locationAdded', this._addLocation.bind(this));
+    this._model
+      .addEventListener('locationRemoved', this._delLocation.bind(this));
   }
   S.theClass(LocationMode).inheritsFrom(UIMode);
 
@@ -46,7 +48,13 @@ define([
 
   LocationMode.prototype._addLocation = function (evt) {
     var landmark = new LandMark(evt.mapLocation);
+    evt.mapLocation.__landmark = landmark; // TODO: maps needed!!
     this._locationsLayer.addChild(landmark.render.graphic);
+  };
+
+  LocationMode.prototype._delLocation = function (evt) {
+    var landmark = evt.mapLocation.__landmark;
+    this._locationsLayer.removeChild(landmark.render.graphic);
   };
 
   return LocationMode;
