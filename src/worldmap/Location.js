@@ -44,7 +44,7 @@ define([
     this._name = newName;
     this.dispatchEvent('nameChanged', {
       oldName: oldName,
-      name: this.getName
+      name: this.getName()
     });
   };
 

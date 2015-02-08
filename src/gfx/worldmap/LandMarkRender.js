@@ -24,6 +24,10 @@ define([
       this.placeLandMark(evt.position);
     }.bind(this));
 
+    mapLocation.addEventListener('nameChanged', function (evt) {
+      this._text.setText(evt.name);
+    }.bind(this));
+
     this.placeLandMark(mapLocation.getPosition());
   }
 

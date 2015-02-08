@@ -19,7 +19,8 @@ define([
     S.theObject(this)
       .has('start', startLocation)
       .has('end', endLocation)
-      .has('_interPoints', points);
+      .has('_interPoints', points)
+      .has('_length', 1);
   }
   S.theClass(Path).inheritsFrom(Model);
 
@@ -56,6 +57,19 @@ define([
 
   Path.prototype._dispatchEndChanged = function () {
     this.dispatchEvent('endChanged', { points: this.getPoints() });
+  };
+
+  Path.prototype.setLength = function (newLength) {
+    var oldLength = this.getLength();
+    this._length = newLength;
+    this.dispatchEvent('lengthChanged', {
+      oldLength: oldLength,
+      newLength: this.getLength()
+    });
+  };
+
+  Path.prototype.getLength = function () {
+    return this._length;
   };
 
   return Path;

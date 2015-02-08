@@ -7,9 +7,10 @@ define([
   'scene/metrics',
   'tools/worldmap-editor/modes/LocationMode',
   'tools/worldmap-editor/modes/PathMode',
-  'tools/worldmap-editor/modes/DeleteMode'
+  'tools/worldmap-editor/modes/DeleteMode',
+  'tools/worldmap-editor/modes/EditMode'
 ], function (S, Modable, GfxSystem, strongforce, metrics, LocationMode,
-             PathMode, DeleteMode) {
+             PathMode, DeleteMode, EditMode) {
   'use strict';
 
   var Loop = strongforce.Loop;
@@ -39,6 +40,13 @@ define([
     this._root.getElementById('select-background-input')
     .addEventListener('change', this._loadBackground.bind(this));
 
+    // Change to edit mode
+    this._root
+    .querySelector('input[name="current-tool-option"][value="edit"]')
+    .addEventListener('click', function () {
+      this.changeMode(this._editMode);
+    }.bind(this));
+
     // Change to locations mode
     this._root
     .querySelector('input[name="current-tool-option"][value="place-location"]')
@@ -62,6 +70,11 @@ define([
 
     // Move the camera
     window.onkeypress = function (evt) {
+      var activeElement = document.activeElement;
+      var isInput = (activeElement.tagName === 'INPUT' &&
+                    ['checkbox', 'radio'].indexOf(activeElement.type) === -1);
+
+      if (isInput) { return; }
       var key = String.fromCharCode(evt.charCode).toUpperCase();
       var deltas = {
         'W': [0, -10],
@@ -124,6 +137,10 @@ define([
       new PathMode(this, this._model, this._pathsLayer);
     this._deleteMode =
       new DeleteMode(this, this._model);
+
+    var propertiesArea = this._root.getElementById('properties-area');
+    this._editMode =
+      new EditMode(this, this._model, propertiesArea);
     this.setupModable(this._gfxSystem);
   };
 
