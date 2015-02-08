@@ -1,12 +1,12 @@
 
 define([], function () {
   var widgetPerType = {
-    'object': PropertyList,
-    'string': StringInput,
-    'number': NumericInput,
-    'bool'  : CheckBox,
-    'array' : IndexList,
-    'circular': CircularLink
+    'object'   : PropertyList,
+    'string'   : StringInput,
+    'number'   : NumericInput,
+    'boolean'  : CheckBox,
+    'array'    : IndexList,
+    'circular' : CircularLink
   };
 
   function PropertyEditor(obj, name) {
@@ -32,7 +32,7 @@ define([], function () {
     var type = Array.isArray(value) ? 'array' : typeof value;
     var isVisited = isReference && this._visited.indexOf(value) > -1;
     if (isVisited) { type = 'circular'; }
-    else { this._visited.push(value); }
+    else if (isReference) { this._visited.push(value); }
     var widget = widgetPerType[type] ?
                  widgetPerType[type].call(this, context, property) :
                  null;

@@ -10,10 +10,12 @@ define([
   function Location(position, name) {
     Model.apply(this, arguments);
     S.theObject(this)
-      .has('name', null);
+      .has('_name', null)
+      .has('_isPopulated', null);
 
     this.setPosition(position);
     this.setName(name);
+    this.setIsPopulated(true);
   }
   S.theClass(Location).inheritsFrom(Model);
 
@@ -45,6 +47,17 @@ define([
     this.dispatchEvent('nameChanged', {
       oldName: oldName,
       name: this.getName()
+    });
+  };
+
+  Location.prototype.isPopulated = function () {
+    return !!this._isPopulated;
+  };
+
+  Location.prototype.setIsPopulated = function (isPopulated) {
+    this._isPopulated = isPopulated;
+    this.dispatchEvent('isPopulatedChanged', {
+      isPopulated: this._isPopulated
     });
   };
 

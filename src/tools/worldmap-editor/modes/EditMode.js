@@ -21,7 +21,9 @@ define([
     if (nearestLocation) {
       descriptor = {
         get name() { return nearestLocation.getName(); },
-        set name(value) { nearestLocation.setName(value); }
+        set name(value) { nearestLocation.setName(value); },
+        get isPopulated() { return nearestLocation.isPopulated(); },
+        set isPopulated(value) { nearestLocation.setIsPopulated(value); }
       };
     }
     else if (nearestPath) {
