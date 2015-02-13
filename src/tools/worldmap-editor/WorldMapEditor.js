@@ -3,10 +3,11 @@ define([
   'S',
   'lib/strongforce',
   'scene/metrics',
+  'worldmap/WorldMap',
   'worldmap/Location',
   'worldmap/Path',
-  'formats/hobject/json'
-], function (S, strongforce, metrics, Location, Path, HObject2JSON) {
+  'formats/worldmap/json'
+], function (S, strongforce, metrics, WorldMap, Location, Path, WorldMap2JSON) {
   'use strict';
 
   var Model = strongforce.Model;
@@ -22,6 +23,41 @@ define([
   }
   S.theClass(WorldMapEditor).inheritsFrom(Model);
 
+  WorldMapEditor.prototype.clear = function () {
+    var paths = this.paths.slice(0);
+    paths.forEach(function (path) {
+      this.removePath(path);
+    }.bind(this));
+    var locations = this.locations.slice(0);
+    locations.forEach(function (mapLocation) {
+      this.removeMapLocation(mapLocation);
+    }.bind(this));
+  };
+
+  WorldMapEditor.prototype.serializeWorldMap = function (meta) {
+    var wmap = new WorldMap({
+      locations: this.locations,
+      paths: this.paths
+    });
+    return WorldMap2JSON.serialize(wmap, meta);
+  };
+
+  WorldMapEditor.prototype.import = function (jsonString) {
+    this.clear();
+    var wmapInfo = WorldMap2JSON.deserialize(jsonString);
+    var wmap = wmapInfo.data;
+    var meta = wmapInfo.meta;
+    if (meta.background) {
+      this.setBackground(meta.background);
+    }
+    wmap.locations.forEach(function (mapLocation) {
+      this._addMapLocation(mapLocation);
+    }.bind(this));
+    wmap.paths.forEach(function (path) {
+      this._addPath(path);
+    }.bind(this));
+  };
+
   WorldMapEditor.prototype.setBackground = function (backgroundData) {
     this.background = backgroundData;
     this.dispatchEvent('backgroundSet', {
@@ -29,6 +65,12 @@ define([
     });
   };
 
+  WorldMapEditor.prototype.clearBackground = function () {
+    this.background = null;
+    this.dispatchEvent('backgroundCleared');
+  };
+
+  // TODO: Move to WorldMap
   WorldMapEditor.prototype.getNearLocation = function (mapPoint, radio) {
     radio = radio || 10;
     var nearestLocation = null;
@@ -43,6 +85,7 @@ define([
     return nearestLocation;
   };
 
+  // TODO: Move to WorldMap
   WorldMapEditor.prototype.getNearPath = function (mapPoint, radio) {
     radio = radio || 10;
     var nearestPath = null;
@@ -57,6 +100,7 @@ define([
     return nearestPath;
   };
 
+  // TODO: Move to WorldMap
   WorldMapEditor.prototype.getPathsForLocation = function (mapLocation) {
     return this.paths.filter(function (path) {
       return path.includes(mapLocation);
@@ -65,11 +109,15 @@ define([
 
   WorldMapEditor.prototype.newMapLocation = function (name, position) {
     var newLocation = new Location(name, position);
-    this.locations.push(newLocation);
+    return this._addMapLocation(newLocation);
+  };
+
+  WorldMapEditor.prototype._addMapLocation = function (mapLocation) {
+    this.locations.push(mapLocation);
     this.dispatchEvent('locationAdded', {
-      mapLocation: newLocation
+      mapLocation: mapLocation
     });
-    return newLocation;
+    return mapLocation;
   };
 
   WorldMapEditor.prototype.removeMapLocation = function (mapLocation) {
@@ -81,11 +129,15 @@ define([
 
   WorldMapEditor.prototype.newPath = function (start, end, points) {
     var newPath = new Path(start, end, points);
-    this.paths.push(newPath);
+    return this._addPath(newPath);
+  };
+
+  WorldMapEditor.prototype._addPath = function (path) {
+    this.paths.push(path);
     this.dispatchEvent('pathAdded', {
-      path: newPath
+      path: path
     });
-    return newPath;
+    return path;
   };
 
   WorldMapEditor.prototype.removePath = function (path) {

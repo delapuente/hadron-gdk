@@ -40,7 +40,7 @@ define([
     }
     else {
       console.error('Could not serialize an object from a class different of' +
-                    'HObject');
+                    CLASS);
       simple = undefined;
     }
     return simple;

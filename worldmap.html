@@ -12,6 +12,17 @@
       <button id="select-background-button">Set background</button>
       <input id="select-background-input" type="file" hidden />
       <fieldset>
+        <legend>Export / Import</legend>
+        <input hidden type="file" id="import-input" />
+        <a hidden id="export" download="worldmap" href="#"></a>
+        <p>
+          <label>File name: <input name="filename"
+            placeholder="worldmap"/></label>
+          <button id="export-button">Export</button>
+          <button id="import-button">Import</button>
+        </p>
+      </fieldset>
+      <fieldset>
         <legend>Tools</legend>
         <p>
           <label><input type="radio" name="current-tool-option"

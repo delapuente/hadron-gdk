@@ -31,6 +31,50 @@ define([
 
     this._root = root;
 
+    function getSourceData(graphic) {
+      var img = graphic.texture.baseTexture.source;
+      var buffer = document.createElement('canvas');
+      buffer.width = img.width;
+      buffer.height = img.height;
+      buffer.getContext('2d').drawImage(img, 0, 0);
+      return buffer.toDataURL();
+    }
+
+    // Export
+    this._root.getElementById('export-button')
+    .addEventListener('click', function () {
+      var meta = !this._background ? {} : {
+        background: getSourceData(this._background)
+      };
+      var stream = this._model.serializeWorldMap(meta);
+      var exportLink = this._root.getElementById('export');
+      var nameInput = this._root.querySelector('[name="filename"]');
+      var filename =
+        (nameInput.value.trim() || nameInput.placeholder) + '.wmap';
+      exportLink.setAttribute('download', filename);
+      exportLink.href = 'data:application/octet-stream,' +
+                        encodeURIComponent(stream);
+      exportLink.click();
+    }.bind(this));
+
+    // Import
+    this._root.querySelector('#import-button')
+    .addEventListener('click', function (evt) {
+      this._root.querySelector('#import-input').click();
+    }.bind(this));
+
+    this._root.querySelector('#import-input')
+    .addEventListener('change', function (evt) {
+      var file = evt.target.files[0];
+      var fileReader = new FileReader();
+      fileReader.onloadend = function () {
+        var stream = fileReader.result;
+        this._model.import(stream);
+      }.bind(this);
+      fileReader.readAsText(file);
+      evt.target.value = '';
+    }.bind(this));
+
     // Load background
     this._root.getElementById('select-background-button')
     .addEventListener('click', function () {
@@ -94,8 +138,9 @@ define([
     this._model = model;
     this._model.render = this._render.bind(this);
 
-    this._model
-    .addEventListener('backgroundSet', this._updateBackground.bind(this));
+    var updateBackground = this._updateBackground.bind(this);
+    this._model.addEventListener('backgroundSet', updateBackground);
+    this._model.addEventListener('backgroundCleared', updateBackground);
 
     this._setupControlModes();
 
@@ -114,13 +159,15 @@ define([
 
   WorldMapEditorUI.prototype._updateBackground = function (evt) {
     if (this._background) { this._mapLayer.removeChild(this._background); }
-    this._background = new this._gfxSystem.Sprite.fromImage(evt.data);
-    this._background.texture.baseTexture.addEventListener('loaded',
-    function () {
-      this._background.x = -this._background.width / 2;
-      this._background.y = -this._background.height / 2;
-    }.bind(this));
-    this._mapLayer.addChildAt(this._background, 0);
+    if (evt.data) {
+      this._background = new this._gfxSystem.Sprite.fromImage(evt.data);
+      this._background.texture.baseTexture.addEventListener('loaded',
+      function () {
+        this._background.x = -this._background.width / 2;
+        this._background.y = -this._background.height / 2;
+      }.bind(this));
+      this._mapLayer.addChildAt(this._background, 0);
+    }
   };
 
   WorldMapEditorUI.prototype._download = function (stream) {

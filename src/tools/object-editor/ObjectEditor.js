@@ -23,6 +23,7 @@ define([
   }
   S.theClass(ObjectEditor).inheritsFrom(Model);
 
+  // TODO: I think this is not necessary
   ObjectEditor.prototype.getSubmodels = function () {
     return [this.grid].concat(this.textures).concat(this.primitives);
   };
