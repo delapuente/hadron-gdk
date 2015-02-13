@@ -161,13 +161,16 @@ define([
     if (this._background) { this._mapLayer.removeChild(this._background); }
     if (evt.data) {
       this._background = new this._gfxSystem.Sprite.fromImage(evt.data);
-      this._background.texture.baseTexture.addEventListener('loaded',
-      function () {
-        this._background.x = -this._background.width / 2;
-        this._background.y = -this._background.height / 2;
-      }.bind(this));
+      this._background.texture.baseTexture
+        .addEventListener('loaded', this._centerBackground.bind(this));
       this._mapLayer.addChildAt(this._background, 0);
+      this._centerBackground();
     }
+  };
+
+  WorldMapEditorUI.prototype._centerBackground = function () {
+    this._background.x = -this._background.width / 2;
+    this._background.y = -this._background.height / 2;
   };
 
   WorldMapEditorUI.prototype._download = function (stream) {
