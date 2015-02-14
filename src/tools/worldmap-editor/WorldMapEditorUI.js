@@ -16,137 +16,17 @@ define([
   var Loop = strongforce.Loop;
 
   function WorldMapEditorUI(root, model) {
+    this._root = root;         // TODO: Extract to a base view
     this._gatherDOMEntities();
-    this._graphicEntities = {};
-    this._gfxSystem = GfxSystem.getSystem();
-    this._gfxSystem.resizeViewport([1024, 768]);
-    this._gfxSystem.centerCamera();
-    this._gfxSystem.setBgColor(model._backgroundColor);
-
-    this._mapLayer = this._gfxSystem.newLayer('map-layer');
-    this._pathsLayer = this._gfxSystem.newLayer('paths-layer');
-    this._locationsLayer = this._gfxSystem.newLayer('locations-layer');
-
-    var placeholder = root.querySelector('#canvas-placeholder');
-    placeholder.parentNode.replaceChild(this._gfxSystem.view, placeholder);
-
-    this._root = root;
-
-    function getSourceData(graphic) {
-      var img = graphic.texture.baseTexture.source;
-      var buffer = document.createElement('canvas');
-      buffer.width = img.width;
-      buffer.height = img.height;
-      buffer.getContext('2d').drawImage(img, 0, 0);
-      return buffer.toDataURL();
-    }
-
-    // Export
-    this._root.getElementById('export-button')
-    .addEventListener('click', function () {
-      var meta = !this._background ? {} : {
-        background: getSourceData(this._background)
-      };
-      var stream = this._model.serializeWorldMap(meta);
-      var nameInput = this.dom.filenameInput;
-      var filename =
-        (nameInput.value.trim() || nameInput.placeholder) + '.wmap';
-      this.dom.exportLink.setAttribute('download', filename);
-      this.dom.exportLink.href = 'data:application/octet-stream,' +
-                                 encodeURIComponent(stream);
-      this.dom.exportLink.click();
-    }.bind(this));
-
-    // Import
-    this._root.querySelector('#import-button')
-    .addEventListener('click', function (evt) {
-      this._root.querySelector('#import-input').click();
-    }.bind(this));
-
-    this._root.querySelector('#import-input')
-    .addEventListener('change', function (evt) {
-      var file = evt.target.files[0];
-      var fileReader = new FileReader();
-      fileReader.onloadend = function () {
-        var stream = fileReader.result;
-        this._model.import(stream);
-      }.bind(this);
-      fileReader.readAsText(file);
-      evt.target.value = '';
-    }.bind(this));
-
-    // Load background
-    this._root.getElementById('select-background-button')
-    .addEventListener('click', function () {
-      this._root.getElementById('select-background-input').click();
-    }.bind(this));
-
-    this._root.getElementById('select-background-input')
-    .addEventListener('change', this._loadBackground.bind(this));
-
-    // Change to edit mode
-    this._root
-    .querySelector('input[name="current-tool-option"][value="edit"]')
-    .addEventListener('click', function () {
-      this.changeMode(this._editMode);
-    }.bind(this));
-
-    // Change to locations mode
-    this._root
-    .querySelector('input[name="current-tool-option"][value="place-location"]')
-    .addEventListener('click', function () {
-      this.changeMode(this._locationMode);
-    }.bind(this));
-
-    // Change to path mode
-    this._root
-    .querySelector('input[name="current-tool-option"][value="draw-path"]')
-    .addEventListener('click', function () {
-      this.changeMode(this._pathMode);
-    }.bind(this));
-
-    // Change to delete mode
-    this._root
-    .querySelector('input[name="current-tool-option"][value="delete-entity"]')
-    .addEventListener('click', function () {
-      this.changeMode(this._deleteMode);
-    }.bind(this));
-
-    // Move the camera
-    window.onkeypress = function (evt) {
-      var activeElement = document.activeElement;
-      var isInput = (activeElement.tagName === 'INPUT' &&
-                    ['checkbox', 'radio'].indexOf(activeElement.type) === -1);
-
-      if (isInput) { return; }
-      var key = String.fromCharCode(evt.charCode).toUpperCase();
-      var deltas = {
-        'W': [0, -10],
-        'S': [0, +10],
-        'A': [-10, 0],
-        'D': [+10, 0]
-      };
-      var delta = deltas[key];
-      var currentPosition = this._gfxSystem.getCameraPosition();
-      var newPosition = [
-        currentPosition[0] - delta[0],
-        currentPosition[1] - delta[1]
-      ];
-      this._gfxSystem.setCameraPosition(newPosition);
-    }.bind(this);
 
     this._model = model;
     this._model.render = this._render.bind(this);
-
-    var updateBackground = this._updateBackground.bind(this);
-    this._model.addEventListener('backgroundSet', updateBackground);
-    this._model.addEventListener('backgroundCleared', updateBackground);
-
+    this._setupGraphics();
     this._setupControlModes();
+    this._setupUI();
 
     this._loop = new Loop({ rootModel: model });
     this._loop.start();
-
   }
   S.theClass(WorldMapEditorUI).mix(Modable);
 
@@ -155,6 +35,8 @@ define([
     selectBackgroundInput: true,
     importInput: true,
     exportLink: true,
+    exportButton: true,
+    importButton: true,
     filenameInput: true,
     tools: {
       __root__: '[name="current-tool-option"][value="$"]',
@@ -168,6 +50,7 @@ define([
 
   WorldMapEditorUI.prototype._gatherDOMEntities = function (els) {
     els = els || this.dom;
+    var root = this._root;
     var slashCase, selector;
     var selectorTemplate = els.__root__ || '#$';
     for (var name in els) if (els.hasOwnProperty(name) && name !== '__root__') {
@@ -182,7 +65,7 @@ define([
           childSelector = toSlashCase(name);
         }
         selector = selectorTemplate.replace('$', childSelector);
-        els[name] = document.querySelector(selector);
+        els[name] = root.querySelector(selector);
       }
     }
 
@@ -197,6 +80,136 @@ define([
         wasLowerCase = !isUpperCase;
       }
       return target.join('');
+    }
+  };
+
+  WorldMapEditorUI.prototype._setupGraphics = function () {
+    this._graphicEntities = {};
+    this._gfxSystem = GfxSystem.getSystem();
+    this._gfxSystem.resizeViewport([1024, 768]);
+    this._gfxSystem.centerCamera();
+    this._gfxSystem.setBgColor(this._model._backgroundColor);
+
+    this._mapLayer = this._gfxSystem.newLayer('map-layer');
+    this._pathsLayer = this._gfxSystem.newLayer('paths-layer');
+    this._locationsLayer = this._gfxSystem.newLayer('locations-layer');
+
+    var placeholder = this._root.querySelector('#canvas-placeholder');
+    placeholder.parentNode.replaceChild(this._gfxSystem.view, placeholder);
+  };
+
+  WorldMapEditorUI.prototype._setupUI = function () {
+
+    this.dom.exportButton.addEventListener(
+      'click',
+      this._exportWorldMap.bind(this)
+    );
+
+    this.dom.importButton.addEventListener(
+      'click',
+      this.dom.importInput.click.bind(this.dom.importInput)
+    );
+
+    this.dom.importInput.addEventListener(
+      'change',
+      this._importWorldMap.bind(this)
+    );
+
+    this.dom.selectBackgroundButton.addEventListener(
+      'click',
+      this.dom.selectBackgroundInput.click.bind(this.dom.selectBackgroundInput)
+    );
+
+    this.dom.selectBackgroundInput.addEventListener(
+      'change',
+      this._loadBackground.bind(this)
+    );
+
+    this.dom.tools.edit.addEventListener(
+      'click',
+      this.changeMode.bind(this, this._editMode)
+    );
+
+    this.dom.tools.placeLocation.addEventListener(
+      'click',
+      this.changeMode.bind(this, this._locationMode)
+    );
+
+    this.dom.tools.drawPath.addEventListener(
+      'click',
+      this.changeMode.bind(this, this._pathMode)
+    );
+
+    this.dom.tools.deleteEntity.addEventListener(
+      'click',
+      this.changeMode.bind(this, this._deleteMode)
+    );
+
+    var updateBackground = this._updateBackground.bind(this);
+    this._model.addEventListener('backgroundSet', updateBackground);
+    this._model.addEventListener('backgroundCleared', updateBackground);
+
+    window.onkeypress = this._moveCamera.bind(this);
+  };
+
+  WorldMapEditorUI.prototype._moveCamera = function (evt) {
+    var activeElement = document.activeElement;
+    var isInput = (activeElement.tagName === 'INPUT' &&
+                  ['checkbox', 'radio'].indexOf(activeElement.type) === -1);
+
+    if (isInput) { return; }
+    var key = String.fromCharCode(evt.charCode).toUpperCase();
+    var deltas = {
+      'W': [0, -10],
+      'S': [0, +10],
+      'A': [-10, 0],
+      'D': [+10, 0]
+    };
+    var delta = deltas[key];
+    var currentPosition = this._gfxSystem.getCameraPosition();
+    var newPosition = [
+      currentPosition[0] - delta[0],
+      currentPosition[1] - delta[1]
+    ];
+    this._gfxSystem.setCameraPosition(newPosition);
+  };
+
+  WorldMapEditorUI.prototype._exportWorldMap = function () {
+    var meta = !this._background ? {} : {
+      background: getSourceData(this._background)
+    };
+    var stream = this._model.serializeWorldMap(meta);
+    var nameInput = this.dom.filenameInput;
+    var filename =
+      (nameInput.value.trim() || nameInput.placeholder) + '.wmap';
+    this.dom.exportLink.setAttribute('download', filename);
+    this.dom.exportLink.href = 'data:application/octet-stream,' +
+                               encodeURIComponent(stream);
+    this.dom.exportLink.click();
+
+    function getSourceData(graphic) {
+      var img = graphic.texture.baseTexture.source;
+      var buffer = document.createElement('canvas');
+      buffer.width = img.width;
+      buffer.height = img.height;
+      buffer.getContext('2d').drawImage(img, 0, 0);
+      return buffer.toDataURL();
+    }
+  };
+
+  WorldMapEditorUI.prototype._importWorldMap = function (evt) {
+    var file = evt.target.files[0];
+    var fileReader = new FileReader();
+    fileReader.onloadend = function () {
+      var stream = fileReader.result;
+      this._model.import(stream);
+      this.dom.filenameInput.value = stripExtension(file.name);
+    }.bind(this);
+    fileReader.readAsText(file);
+    evt.target.value = '';
+
+    function stripExtension(filename) {
+      return filename.substr(0, filename.lastIndexOf('.'));
     }
   };
 
@@ -235,7 +248,8 @@ define([
     this.setupModable({
       '_locationMode': [LocationMode, model, this._locationsLayer],
       '_pathMode'    : [PathMode, model, this._pathsLayer],
-      '_editMode'    : [EditMode, model, this.dom.propertiesArea]
+      '_editMode'    : [EditMode, model, this.dom.propertiesArea],
+      '_deleteMode'  : [DeleteMode, model]
     }, this._gfxSystem);
   };
 
