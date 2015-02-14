@@ -16,43 +16,51 @@ define([
     Model.call(this);
     S.theObject(this)
       .has('background', null)
-      .has('locations', [])
-      .has('paths', []);
+      .has('_wmap', new WorldMap());
 
     this._backgroundColor = 0xFFFFFF;
   }
   S.theClass(WorldMapEditor).inheritsFrom(Model);
 
   WorldMapEditor.prototype.clear = function () {
-    var paths = this.paths.slice(0);
+    // Clear paths
+    var paths = this._wmap.paths.slice(0);
     paths.forEach(function (path) {
       this.removePath(path);
     }.bind(this));
-    var locations = this.locations.slice(0);
+
+    // Clear locations
+    var locations = this._wmap.locations.slice(0);
     locations.forEach(function (mapLocation) {
       this.removeMapLocation(mapLocation);
     }.bind(this));
+
+    // Reset the map
+    this._wmap = new WorldMap();
   };
 
-  WorldMapEditor.prototype.serializeWorldMap = function (meta) {
-    var wmap = new WorldMap({
-      locations: this.locations,
-      paths: this.paths
-    });
-    return WorldMap2JSON.serialize(wmap, meta);
+  WorldMapEditor.prototype.serializeWorldMap = function (uimeta) {
+    return WorldMap2JSON.serialize(this._wmap, uimeta);
   };
 
   WorldMapEditor.prototype.import = function (jsonString) {
     this.clear();
+
     var wmapInfo = WorldMap2JSON.deserialize(jsonString);
     var wmap = wmapInfo.data;
     var meta = wmapInfo.meta;
+
+    // Editor meta
     if (meta.background) {
       this.setBackground(meta.background);
     }
+
+    // Restore locations
     wmap.locations.forEach(function (mapLocation) {
       this._addMapLocation(mapLocation);
     }.bind(this));
+
+    // Restore paths
     wmap.paths.forEach(function (path) {
       this._addPath(path);
     }.bind(this));
@@ -70,41 +78,16 @@ define([
     this.dispatchEvent('backgroundCleared');
   };
 
-  // TODO: Move to WorldMap
   WorldMapEditor.prototype.getNearLocation = function (mapPoint, radio) {
-    radio = radio || 10;
-    var nearestLocation = null;
-    this.locations.reduce(function (minDistance, mapLocation) {
-      var distance = metrics.distance(mapLocation.getPosition(), mapPoint);
-      if (distance < radio && distance < minDistance) {
-        minDistance = distance;
-        nearestLocation = mapLocation;
-      }
-      return minDistance;
-    }, Infinity);
-    return nearestLocation;
+    return this._wmap.getNearLocation(mapPoint, radio);
   };
 
-  // TODO: Move to WorldMap
   WorldMapEditor.prototype.getNearPath = function (mapPoint, radio) {
-    radio = radio || 10;
-    var nearestPath = null;
-    this.paths.reduce(function (minDistance, path) {
-      var distance = path.distance(mapPoint);
-      if (distance < radio && distance < minDistance) {
-        minDistance = distance;
-        nearestPath = path;
-      }
-      return minDistance;
-    }, Infinity);
-    return nearestPath;
+    return this._wmap.getNearPath(mapPoint, radio);
   };
 
-  // TODO: Move to WorldMap
   WorldMapEditor.prototype.getPathsForLocation = function (mapLocation) {
-    return this.paths.filter(function (path) {
-      return path.includes(mapLocation);
-    });
+    return this._wmap.getPathsForLocation(mapLocation);
   };
 
   WorldMapEditor.prototype.newMapLocation = function (name, position) {
@@ -113,7 +96,7 @@ define([
   };
 
   WorldMapEditor.prototype._addMapLocation = function (mapLocation) {
-    this.locations.push(mapLocation);
+    this._wmap.locations.push(mapLocation);
     this.dispatchEvent('locationAdded', {
       mapLocation: mapLocation
     });
@@ -121,7 +104,7 @@ define([
   };
 
   WorldMapEditor.prototype.removeMapLocation = function (mapLocation) {
-    this.locations.splice(this.locations.indexOf(mapLocation), 1);
+    this._wmap.locations.splice(this._wmap.locations.indexOf(mapLocation), 1);
     this.dispatchEvent('locationRemoved', {
       mapLocation: mapLocation
     });
@@ -133,7 +116,7 @@ define([
   };
 
   WorldMapEditor.prototype._addPath = function (path) {
-    this.paths.push(path);
+    this._wmap.paths.push(path);
     this.dispatchEvent('pathAdded', {
       path: path
     });
@@ -141,7 +124,7 @@ define([
   };
 
   WorldMapEditor.prototype.removePath = function (path) {
-    this.paths.splice(this.paths.indexOf(path), 1);
+    this._wmap.paths.splice(this._wmap.paths.indexOf(path), 1);
     this.dispatchEvent('pathRemoved', {
       path: path
     });

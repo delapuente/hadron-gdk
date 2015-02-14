@@ -16,6 +16,7 @@ define([
   var Loop = strongforce.Loop;
 
   function WorldMapEditorUI(root, model) {
+    this._gatherDOMEntities();
     this._graphicEntities = {};
     this._gfxSystem = GfxSystem.getSystem();
     this._gfxSystem.resizeViewport([1024, 768]);
@@ -47,14 +48,13 @@ define([
         background: getSourceData(this._background)
       };
       var stream = this._model.serializeWorldMap(meta);
-      var exportLink = this._root.getElementById('export');
-      var nameInput = this._root.querySelector('[name="filename"]');
+      var nameInput = this.dom.filenameInput;
       var filename =
         (nameInput.value.trim() || nameInput.placeholder) + '.wmap';
-      exportLink.setAttribute('download', filename);
-      exportLink.href = 'data:application/octet-stream,' +
-                        encodeURIComponent(stream);
-      exportLink.click();
+      this.dom.exportLink.setAttribute('download', filename);
+      this.dom.exportLink.href = 'data:application/octet-stream,' +
+                                 encodeURIComponent(stream);
+      this.dom.exportLink.click();
     }.bind(this));
 
     // Import
@@ -107,7 +107,7 @@ define([
 
     // Change to delete mode
     this._root
-    .querySelector('input[name="current-tool-option"][value="delete"]')
+    .querySelector('input[name="current-tool-option"][value="delete-entity"]')
     .addEventListener('click', function () {
       this.changeMode(this._deleteMode);
     }.bind(this));
@@ -150,6 +150,56 @@ define([
   }
   S.theClass(WorldMapEditorUI).mix(Modable);
 
+  WorldMapEditorUI.prototype.dom = {
+    selectBackgroundButton: true,
+    selectBackgroundInput: true,
+    importInput: true,
+    exportLink: true,
+    filenameInput: true,
+    tools: {
+      __root__: '[name="current-tool-option"][value="$"]',
+      edit: true,
+      placeLocation: true,
+      drawPath: true,
+      deleteEntity: true
+    },
+    propertiesArea: true
+  };
+
+  WorldMapEditorUI.prototype._gatherDOMEntities = function (els) {
+    els = els || this.dom;
+    var slashCase, selector;
+    var selectorTemplate = els.__root__ || '#$';
+    for (var name in els) if (els.hasOwnProperty(name) && name !== '__root__') {
+      var childSelector = els[name];
+      var type = typeof childSelector;
+      if (!childSelector) { continue; }
+      if (type === 'object') {
+        this._gatherDOMEntities(childSelector);
+      }
+      else {
+        if (type === 'boolean') {
+          childSelector = toSlashCase(name);
+        }
+        selector = selectorTemplate.replace('$', childSelector);
+        els[name] = document.querySelector(selector);
+      }
+    }
+
+    function toSlashCase(camelCase) {
+      var wasLowerCase = false, isUpperCase, target = [];
+      for (var i = 0, c; (c = camelCase[i]); i++) {
+        isUpperCase = (c === c.toUpperCase());
+        if (isUpperCase && wasLowerCase) {
+          target.push('-');
+        }
+        target.push(c.toLowerCase());
+        wasLowerCase = !isUpperCase;
+      }
+      return target.join('');
+    }
+  };
+
   WorldMapEditorUI.prototype._loadBackground = function (evt) {
     var newBackground = evt.target.files[0];
     var objectURL = URL.createObjectURL(newBackground);
@@ -181,17 +231,12 @@ define([
   };
 
   WorldMapEditorUI.prototype._setupControlModes = function () {
-    this._locationMode =
-      new LocationMode(this, this._model, this._locationsLayer);
-    this._pathMode =
-      new PathMode(this, this._model, this._pathsLayer);
-    this._deleteMode =
-      new DeleteMode(this, this._model);
-
-    var propertiesArea = this._root.getElementById('properties-area');
-    this._editMode =
-      new EditMode(this, this._model, propertiesArea);
-    this.setupModable(this._gfxSystem);
+    var model = this._model;
+    this.setupModable({
+      '_locationMode': [LocationMode, model, this._locationsLayer],
+      '_pathMode'    : [PathMode, model, this._pathsLayer],
+      '_editMode'    : [EditMode, model, this.dom.propertiesArea]
+    }, this._gfxSystem);
   };
 
   WorldMapEditorUI.prototype.notifyStartOfFlow = function (flowName) {

@@ -1,8 +1,9 @@
 
 define([
   'S',
-  'lib/strongforce'
-], function (S, strongforce) {
+  'lib/strongforce',
+  'scene/metrics'
+], function (S, strongforce, metrics) {
   'use strict';
 
   var Model = strongforce.Model;
@@ -10,14 +11,18 @@ define([
   function Location(position, name) {
     Model.apply(this, arguments);
     S.theObject(this)
-      .has('_name', null)
-      .has('_isPopulated', null);
+      .has('_name', '')
+      .has('_populated', true);
 
     this.setPosition(position);
     this.setName(name);
-    this.setIsPopulated(true);
+    this.setPopulated(true);
   }
   S.theClass(Location).inheritsFrom(Model);
+
+  Location.prototype.distance = function (point) {
+    return metrics.distance(this.getPosition(), point);
+  };
 
   Location.prototype.getPosition = function () {
     if (!this._position) { return null; }
@@ -51,13 +56,13 @@ define([
   };
 
   Location.prototype.isPopulated = function () {
-    return !!this._isPopulated;
+    return !!this._populated;
   };
 
-  Location.prototype.setIsPopulated = function (isPopulated) {
-    this._isPopulated = isPopulated;
+  Location.prototype.setPopulated = function (populated) {
+    this._populated = populated;
     this.dispatchEvent('isPopulatedChanged', {
-      isPopulated: this._isPopulated
+      populated: this._populated
     });
   };
 

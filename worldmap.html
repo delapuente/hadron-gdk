@@ -14,9 +14,9 @@
       <fieldset>
         <legend>Export / Import</legend>
         <input hidden type="file" id="import-input" />
-        <a hidden id="export" download="worldmap" href="#"></a>
+        <a hidden id="export-link" download="worldmap" href="#"></a>
         <p>
-          <label>File name: <input name="filename"
+          <label>File name: <input id="filename-input"
             placeholder="worldmap"/></label>
           <button id="export-button">Export</button>
           <button id="import-button">Import</button>
@@ -41,7 +41,7 @@
         </p>
         <p>
           <label><input type="radio" name="current-tool-option"
-            value="delete"/> Delete
+            value="delete-entity"/> Delete
           </label>
         </p>
       </fieldset>

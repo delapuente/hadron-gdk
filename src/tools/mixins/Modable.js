@@ -4,7 +4,17 @@ define([], function () {
 
   function Modable() {}
 
-  Modable.prototype.setupModable = function (evtTarget) {
+  Modable.prototype.setupModable = function (modes, evtTarget) {
+    // Setup modes
+    for (var modeId in modes) if (modes.hasOwnProperty(modeId)) {
+      var definition = modes[modeId];
+      var Mode = definition[0];
+      var args = [this].concat(definition.slice(1));
+      var mode = this[modeId] = Object.create(Mode.prototype);
+      Mode.apply(mode, args);
+    }
+
+    // Initialize modes
     this._modable = {
       _current: null,
       _isLocked: false

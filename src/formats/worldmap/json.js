@@ -7,7 +7,7 @@ define([
 ], function (S, Path, Location, WorldMap) {
   'use strict';
 
-  var VERSION = '1.0';
+  var VERSION = '2.0';
   var FORMAT = 'json';
   var CLASS = 'WorldMap';
 
@@ -36,7 +36,7 @@ define([
         simple.locations.push({
           _position: mapLocation.getPosition(),
           _name: mapLocation.getName(),
-          _isPopulated: mapLocation.isPopulated()
+          _populated: mapLocation.isPopulated()
         });
       });
     }
@@ -66,7 +66,9 @@ define([
           simpleLocation._position,
           simpleLocation._name
         );
-        mapLocation.setIsPopulated(simpleLocation._isPopulated);
+        var populated = simpleLocation._isPopulated ||
+                        simpleLocation._populated;
+        mapLocation.setPopulated(simpleLocation._isPopulated);
         return mapLocation;
       });
 

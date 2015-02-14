@@ -23,7 +23,7 @@ define([
         get name() { return nearestLocation.getName(); },
         set name(value) { nearestLocation.setName(value); },
         get isPopulated() { return nearestLocation.isPopulated(); },
-        set isPopulated(value) { nearestLocation.setIsPopulated(value); }
+        set isPopulated(value) { nearestLocation.setPopulated(value); }
       };
     }
     else if (nearestPath) {
