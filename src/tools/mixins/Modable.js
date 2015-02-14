@@ -6,6 +6,7 @@ define([], function () {
 
   Modable.prototype.setupModable = function (modes, evtTarget) {
     // Setup modes
+    modes = modes || Object.create(null);
     for (var modeId in modes) if (modes.hasOwnProperty(modeId)) {
       var definition = modes[modeId];
       var Mode = definition[0];

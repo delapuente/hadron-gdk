@@ -12,10 +12,15 @@ define([
         __version__: this.VERSION,
         __format__: FORMAT
       };
-      this.simplify(obj, simpleObject);
-      simpleObject.__meta__ = meta || {};
-      if (typeof simpleObject !== 'undefined') {
-        jsonString = JSON.stringify(simpleObject);
+      var isOk = this.simplify(obj, simpleObject);
+      if (!isOk) {
+        console.error('Fatal error serializing the object.');
+      }
+      else {
+        simpleObject.__meta__ = meta || {};
+        if (typeof simpleObject !== 'undefined') {
+          jsonString = JSON.stringify(simpleObject);
+        }
       }
       return jsonString;
     },

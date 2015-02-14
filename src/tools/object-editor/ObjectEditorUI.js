@@ -245,7 +245,7 @@ define([
       this._xzHandler
     );
 
-    this.setupModable(this._gfxSystem);
+    this.setupModable(null, this._gfxSystem);
   };
 
   ObjectEditorUI.prototype.notifyStartOfFlow = function (flowName) {

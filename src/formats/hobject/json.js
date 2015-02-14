@@ -1,63 +1,50 @@
 
 define([
   'S',
+  'formats/jsonBase',
   'scene/nodes/HObject',
   'scene/nodes/Node',
   'scene/nodes/geometries/Cuboid'
-], function (S, HObject, Node, Cuboid) {
+], function (S, jsonBase, HObject, Node, Cuboid) {
   'use strict';
 
-  var VERSION = '1.0';
-  var FORMAT = 'json';
-  var CLASS = 'HObject';
+  var module = {
+    VERSION: '1.0',
 
-  function simplify(hobject) {
-    var simple = {
-      nodes: [],
-      textures: [],
-      __class__: CLASS,
-      __format__: FORMAT,
-      __version__: VERSION
-    };
+    CLASS: 'HObject',
 
-    if (hobject instanceof HObject) {
-      // Save nodes
-      hobject.nodes.forEach(function (node) {
-        simple.nodes.push({
-          position: node.getPosition(),
-          dimensions: node.getDimensions()
+    simplify: function (hobject, simple) {
+      simple.nodes = [];
+      simple.textures = [];
+
+      if (hobject instanceof HObject) {
+        // Save nodes
+        hobject.nodes.forEach(function (node) {
+          simple.nodes.push({
+            position: node.getPosition(),
+            dimensions: node.getDimensions()
+          });
         });
-      });
 
-      // Save textures
-      hobject.textures.forEach(function (texture) {
-        simple.textures.push({
-          name: texture.name,
-          position: texture.getPosition(),
-          data: texture.getSourceData()
+        // Save textures
+        hobject.textures.forEach(function (texture) {
+          simple.textures.push({
+            name: texture.name,
+            position: texture.getPosition(),
+            data: texture.getSourceData()
+          });
         });
-      });
-    }
-    else {
-      console.error('Could not serialize an object from a class different of' +
-                    CLASS);
-      simple = undefined;
-    }
-    return simple;
-  }
-
-  function enrich(simple) {
-    var hobject = null;
-
-    if (!simple) {
-      console.error('JSON representation is not valid.');
-    }
-    else {
-
-      if (!matchConstrains(simple)) {
-        console.warn('The stream is not a compliant HObject. Could be errors ' +
-                     'while importing.');
       }
+      else {
+        console.error('Could not serialize an object from a class different of' +
+                      CLASS);
+        return false;
+      }
+      return true;
+    },
+
+    enrich: function (simple) {
+      var hobject = null;
 
       var nodes = simple.nodes.map(function (simpleNode) {
         var cuboid = new Cuboid(simpleNode.dimensions);
@@ -69,40 +56,11 @@ define([
         nodes: nodes,
         textures: simple.textures
       });
+
+      return hobject;
     }
-
-    return hobject;
-  }
-
-  function serialize(hobject) {
-    var jsonString = null;
-    var simpleObject = simplify(hobject);
-    if (typeof simpleObject !== 'undefined') {
-      jsonString = JSON.stringify(simpleObject);
-    }
-    return jsonString;
-  }
-
-  function deserialize(jsonString) {
-    var simple = null;
-
-    try {
-      simple = JSON.parse(jsonString);
-    } catch (e) {}
-
-    return enrich(simple);
-  }
-
-  function matchConstrains(simple) {
-    return simple.__class__   === CLASS &&
-           simple.__format__  === FORMAT &&
-           simple.__version__ === VERSION;
-  }
-
-  return {
-    simplify: simplify,
-    enrich: enrich,
-    serialize: serialize,
-    deserialize: deserialize
   };
+  S.the(module).mix(jsonBase);
+
+  return module;
 });

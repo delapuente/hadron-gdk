@@ -15,6 +15,9 @@ define([
     CLASS: 'WorldMap',
 
     simplify: function (wmap, simple) {
+      simple.paths = [];
+      simple.locations = [];
+
       if (wmap instanceof WorldMap) {
         // Save paths
         wmap.paths.forEach(function (path) {
@@ -38,9 +41,10 @@ define([
       else {
         console.error('Could not serialize an object from a class different of' +
                       this.CLASS);
-        simple = undefined;
+        return false;
       }
-      return simple;
+
+      return true;
     },
 
     enrich: function (simple) {

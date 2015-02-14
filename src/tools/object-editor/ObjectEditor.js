@@ -119,7 +119,7 @@ define([
   ObjectEditor.prototype.import = function (jsonString) {
     this.clear();
 
-    var hobject = HObject2JSON.deserialize(jsonString);
+    var hobject = HObject2JSON.deserialize(jsonString).data;
 
     hobject.textures.forEach(function (texture) {
       var newTexture = this.addNewTexture(texture.data, texture.name);
