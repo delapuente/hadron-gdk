@@ -10,7 +10,7 @@ define([
 
   var module = {
 
-    VERSION: '2.0',
+    VERSION: '2.1',
 
     CLASS: 'WorldMap',
 
@@ -25,7 +25,8 @@ define([
             start: wmap.locations.indexOf(path.start), // ref to locations
             end: wmap.locations.indexOf(path.end),     // ref to locations
             _interPoints: JSON.parse(JSON.stringify(path._interPoints)),
-            _length: path._length
+            _length: path._length,
+            _milestones: path._milestones
           });
         });
 
@@ -65,7 +66,8 @@ define([
         var path = new Path(
           locations[simplePath.start],
           locations[simplePath.end],
-          simplePath._interPoints
+          simplePath._interPoints,
+          simplePath._milestones
         );
         return path;
       });

@@ -12,7 +12,7 @@ define([
     return metrics.distance(segment[0], segment[1]);
   }
 
-  function Path(startLocation, endLocation, points) {
+  function Path(startLocation, endLocation, points, milestones) {
     Model.apply(this, arguments);
 
     startLocation
@@ -24,7 +24,7 @@ define([
       .has('start', startLocation)
       .has('end', endLocation)
       .has('_interPoints', points)
-      .has('_milestones', 1);
+      .has('_milestones', milestones || 1);
   }
   S.theClass(Path).inheritsFrom(Model);
 

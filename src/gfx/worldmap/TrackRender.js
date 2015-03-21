@@ -20,7 +20,7 @@ define([
 
     track.addEventListener('pointSetChanged', function (evt) {
       this._drawTrack(evt.points);
-      this._drawMilestones(1);
+      this._drawMilestones(evt.milestones);
     }.bind(this));
 
     track.addEventListener('milestonesChanged', function (evt) {

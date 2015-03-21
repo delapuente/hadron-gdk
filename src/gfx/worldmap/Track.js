@@ -23,7 +23,7 @@ define([
       this._milestones = this._path.getMilestonesCount();
       this._path.addEventListener(
         'milestonesChanged',
-        this._onMilesStonesChanged.bind(this)
+        this._onMilestonesChanged.bind(this)
       );
     }
 
@@ -50,15 +50,21 @@ define([
     this._dispatchPointSetChanged();
   };
 
-  Track.prototype._onMilesStonesChanged = function (evt) {
-    this.dispatchEvent('milestonesChanged', {
-      milestones: evt.newMilestones
-    });
+  Track.prototype._onMilestonesChanged = function (evt) {
+    this._milestones = evt.newMilestones;
+    this._dispatchMilestonesChanged();
   };
 
   Track.prototype._dispatchPointSetChanged = function () {
    this.dispatchEvent('pointSetChanged', {
-      points: this._points
+      points: this._points,
+      milestones: this._milestones
+    });
+  };
+
+  Track.prototype._dispatchMilestonesChanged = function () {
+    this.dispatchEvent('milestonesChanged', {
+      milestones: this._milestones
     });
   };
 
