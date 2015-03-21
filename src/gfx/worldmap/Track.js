@@ -20,6 +20,11 @@ define([
         'endChanged',
         this._onPathEndChanged.bind(this)
       );
+      this._milestones = this._path.getMilestonesCount();
+      this._path.addEventListener(
+        'milestonesChanged',
+        this._onMilesStonesChanged.bind(this)
+      );
     }
 
     this.setPoints(points);
@@ -45,6 +50,12 @@ define([
     this._dispatchPointSetChanged();
   };
 
+  Track.prototype._onMilesStonesChanged = function (evt) {
+    this.dispatchEvent('milestonesChanged', {
+      milestones: evt.newMilestones
+    });
+  };
+
   Track.prototype._dispatchPointSetChanged = function () {
    this.dispatchEvent('pointSetChanged', {
       points: this._points
@@ -58,6 +69,10 @@ define([
 
   Track.prototype.getLength = function (point) {
     return this._points.length;
+  };
+
+  Track.prototype.getPointAtMilestone = function (target) {
+    return this._path ? this._path.getPointAtMilestone(target) : undefined;
   };
 
   Track.prototype.setPoints = function (points) {

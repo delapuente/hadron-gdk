@@ -28,8 +28,8 @@ define([
     }
     else if (nearestPath) {
       descriptor = {
-        get length() { return nearestPath.getLength(); },
-        set length(value) { nearestPath.setLength(value); },
+        get milestones() { return nearestPath.getMilestonesCount(); },
+        set milestones(value) { nearestPath.setMilestonesCount(value); },
       };
     }
     if (descriptor) {

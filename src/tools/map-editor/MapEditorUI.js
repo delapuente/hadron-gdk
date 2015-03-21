@@ -118,21 +118,21 @@ define([
   };
 
   MapEditorUI.prototype._setupControlModes = function () {
-    //this._textureControlMode = new TextureMode(
-      //this,
-      //this._textureTools,
-      //this._model,
-      //this._textureLayer
-    //);
-    this._objectMode = new ObjectMode(
-      this,
-      this._objectTools,
-      this._model,
-      this._isospace,
-      this._isospaceLayer
-    );
-
-    this.setupModable(this._gfxSystem);
+    this.setupModable([
+      //{ '_textureControlMode': [
+        //TextureMode,
+        //this._textureTools,
+        //this._model,
+        //this._textureLayer
+      //]},
+      { '_objectMode': [
+        ObjectMode,
+        this._objectTools,
+        this._model,
+        this._isospace,
+        this._isospaceLayer
+      ]}
+    ], this._gfxSystem);
   };
 
   MapEditorUI.prototype.notifyStartOfFlow = function (flowName) {

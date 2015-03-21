@@ -8,6 +8,10 @@ define([
 
   var Model = strongforce.Model;
 
+  function length(segment) {
+    return metrics.distance(segment[0], segment[1]);
+  }
+
   function Path(startLocation, endLocation, points) {
     Model.apply(this, arguments);
 
@@ -20,7 +24,7 @@ define([
       .has('start', startLocation)
       .has('end', endLocation)
       .has('_interPoints', points)
-      .has('_length', 1);
+      .has('_milestones', 1);
   }
   S.theClass(Path).inheritsFrom(Model);
 
@@ -59,17 +63,50 @@ define([
     this.dispatchEvent('endChanged', { points: this.getPoints() });
   };
 
-  Path.prototype.setLength = function (newLength) {
-    var oldLength = this.getLength();
-    this._length = newLength;
-    this.dispatchEvent('lengthChanged', {
-      oldLength: oldLength,
-      newLength: this.getLength()
+  Path.prototype.setMilestonesCount = function (newMilestones) {
+    var oldMilestones = this.getMilestonesCount();
+    this._milestones = newMilestones;
+    this.dispatchEvent('milestonesChanged', {
+      oldMilestones: oldMilestones,
+      newMilestones: this.getMilestonesCount()
     });
   };
 
-  Path.prototype.getLength = function () {
-    return this._length;
+  Path.prototype.getMilestonesCount = function () {
+    return this._milestones;
+  };
+
+  Path.prototype.getTotalDistance = function () {
+    var segments = this.getSegments();
+    return segments.reduce(function (total, segment) {
+      return total + length(segment);
+    }, 0);
+  };
+
+  Path.prototype.getPointAtMilestone = function (target) {
+    target = Math.min(Math.max(0, target), 1.0); // 0 <= target <= 1.0
+    var totalDistance = this.getTotalDistance();
+    var segments = this.getSegments();
+
+    var i = 0;
+    var currentSegment = segments[i];
+    var segmentLength = length(currentSegment);
+    var segmentMilestone = segmentLength / totalDistance;
+    while (segmentMilestone < target) {
+      target -= segmentMilestone;
+      i++;
+      currentSegment = segments[i];
+      segmentLength = length(currentSegment);
+      segmentMilestone = segmentLength / totalDistance;
+    }
+
+    var remainingDistance = target * totalDistance;
+    var relativeDistance = remainingDistance / segmentLength;
+    var segmentVector = metrics.sub(currentSegment[1], currentSegment[0]);
+    var scaledByTarget = metrics.mul(relativeDistance, segmentVector);
+    var milestonePoint = metrics.add(currentSegment[0], scaledByTarget);
+
+    return milestonePoint;
   };
 
   return Path;
