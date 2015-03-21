@@ -55,8 +55,8 @@ define([
     function getPointsForMilestones(milestones) {
       var point, points = [];
       var delta = 1 / milestones;
-      for (var m = 0; m < 1; m += delta) {
-        point = self._track.getPointAtMilestone(m);
+      for (var m = 0; m < milestones; m++) {
+        point = self._track.getPointAtMilestone(m * delta);
         if (point) { points.push(point); }
       }
       return points;
