@@ -8,9 +8,12 @@ define([
   'tools/worldmap-editor/modes/LocationMode',
   'tools/worldmap-editor/modes/PathMode',
   'tools/worldmap-editor/modes/DeleteMode',
-  'tools/worldmap-editor/modes/EditMode'
+  'tools/worldmap-editor/modes/EditMode',
+  'tools/worldmap-editor/modes/PlacePartyMode',
+  'tools/worldmap-editor/modes/PlacePartyMode'
 ], function (S, Modable, GfxSystem, strongforce, metrics, LocationMode,
-             PathMode, DeleteMode, EditMode) {
+             PathMode, DeleteMode, EditMode, PlacePartyMode, ChooseDestination)
+{
   'use strict';
 
   var Loop = strongforce.Loop;
@@ -43,7 +46,9 @@ define([
       edit: true,
       placeLocation: true,
       drawPath: true,
-      deleteEntity: true
+      deleteEntity: true,
+      placeParty: true,
+      chooseDestination: true
     },
     propertiesArea: true
   };
@@ -93,6 +98,7 @@ define([
     this._mapLayer = this._gfxSystem.newLayer('map-layer');
     this._pathsLayer = this._gfxSystem.newLayer('paths-layer');
     this._locationsLayer = this._gfxSystem.newLayer('locations-layer');
+    this._partyLayer = this._gfxSystem.newLayer('party-layer');
 
     var placeholder = this._root.querySelector('#canvas-placeholder');
     placeholder.parentNode.replaceChild(this._gfxSystem.view, placeholder);
@@ -143,6 +149,16 @@ define([
     this.dom.tools.deleteEntity.addEventListener(
       'click',
       this.changeMode.bind(this, this._deleteMode)
+    );
+
+    this.dom.tools.placeParty.addEventListener(
+      'click',
+      this.changeMode.bind(this, this._placePartyMode)
+    );
+
+    this.dom.tools.chooseDestination.addEventListener(
+      'click',
+      this.changeMode.bind(this, this._chooseDestinationMode)
     );
 
     var updateBackground = this._updateBackground.bind(this);
@@ -246,10 +262,12 @@ define([
   WorldMapEditorUI.prototype._setupControlModes = function () {
     var model = this._model;
     this.setupModable({
-      '_locationMode': [LocationMode, model, this._locationsLayer],
-      '_pathMode'    : [PathMode, model, this._pathsLayer],
-      '_editMode'    : [EditMode, model, this.dom.propertiesArea],
-      '_deleteMode'  : [DeleteMode, model]
+      '_locationMode'           : [LocationMode, model, this._locationsLayer],
+      '_pathMode'               : [PathMode, model, this._pathsLayer],
+      '_editMode'               : [EditMode, model, this.dom.propertiesArea],
+      '_deleteMode'             : [DeleteMode, model],
+      '_placePartyMode'         : [PlacePartyMode, model, this._partyLayer],
+      '_chooseDestinationMode'  : [ChooseDestination, model, this._partyLayer]
     }, this._gfxSystem);
   };
 

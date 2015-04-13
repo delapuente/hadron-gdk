@@ -15,6 +15,18 @@ define([
   }
   S.theClass(LandMark).inheritsFrom(Model);
 
+  LandMark.prototype.show = function () {
+    this.dispatchEvent('visibilityChange', { visibility: true });
+  };
+
+  LandMark.prototype.hide = function () {
+    this.dispatchEvent('visibilityChange', { visibility: false });
+  };
+
+  LandMark.prototype.setColor = function (color) {
+    this.dispatchEvent('colorChange', { color: color });
+  };
+
   LandMark.prototype.render = LandMarkRender;
 
   return LandMark;
