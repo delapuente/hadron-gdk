@@ -28,10 +28,10 @@
   "authors": [
     "Salvador de la Puente González <salva@unoyunodiez.com> (http://unoyunodiez.com)"
   ],
-  "homepage": "https://github.com/lodr/strongforce",
+  "homepage": "https://github.com/delapuente/strongforce",
   "repository": {
     "type": "git",
-    "url": "git://github.com/lodr/strongforce.git"
+    "url": "git://github.com/delapuente/strongforce.git"
   },
   "dependencies": { }
 }

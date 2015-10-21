@@ -28,10 +28,10 @@
   "authors": [
     "Salvador de la Puente González <salva@unoyunodiez.com> (http://unoyunodiez.com)"
   ],
-  "homepage": "https://github.com/lodr/strongforce",
+  "homepage": "https://github.com/delapuente/strongforce",
   "repository": {
     "type": "git",
-    "url": "git://github.com/lodr/strongforce.git"
+    "url": "git://github.com/delapuente/strongforce.git"
   },
   "dependencies": {},
   "_release": "1.1.2",
@@ -40,7 +40,7 @@
     "tag": "v1.1.2",
     "commit": "de062bcd26361ed1ac1c67f859867d451e32201c"
   },
-  "_source": "git://github.com/lodr/strongforce.git",
+  "_source": "git://github.com/delapuente/strongforce.git",
   "_target": "~1.1.1",
   "_originalSource": "strongforce"
 }

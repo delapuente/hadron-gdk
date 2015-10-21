@@ -4,7 +4,7 @@ Strongforce is a light-weight framework to build game engines. It provides a bac
 
 ## Example
 
-The [Hexagonal Conway's Game of Life](https://rawgit.com/lodr/strongforce/master/demo/index.html) is a real example of strongforce in action.
+The [Hexagonal Conway's Game of Life](https://rawgit.com/delapuente/strongforce/master/demo/index.html) is a real example of strongforce in action.
 
 ## Installation
 
@@ -12,7 +12,7 @@ Using Bower:
 
     bower install strongforce
 
-Or grab the [source](https://raw.githubusercontent.com/lodr/strongforce/master/dist/strongforce.js) ([minified](https://raw.githubusercontent.com/lodr/strongforce/master/dist/strongforce.min.js)).
+Or grab the [source](https://raw.githubusercontent.com/delapuente/strongforce/master/dist/strongforce.js) ([minified](https://raw.githubusercontent.com/delapuente/strongforce/master/dist/strongforce.min.js)).
 
 ## Usage
 
@@ -44,7 +44,7 @@ Strongforce requires `window.requestAnimationFrame()` as a global dependency whi
 
 ## Documentation
 
-Start by reading the [rationale behind strongforce](https://github.com/lodr/strongforce/wiki/Rationale), then take a look to the [sources of the demo](https://github.com/lodr/strongforce/tree/master/demo/scripts) and use the [API documentation](http://rawgit.com/lodr/strongforce/master/docs/index.html) whenever you want.
+Start by reading the [rationale behind strongforce](https://github.com/delapuente/strongforce/wiki/Rationale), then take a look to the [sources of the demo](https://github.com/delapuente/strongforce/tree/master/demo/scripts) and use the [API documentation](http://rawgit.com/delapuente/strongforce/master/docs/index.html) whenever you want.
 
 ## Contributing
 
@@ -54,7 +54,7 @@ Any contribution is welcome, just:
 * Have a clear and documented rationale for your changes.
 * Package these up in a pull request.
 
-In addition, take a look at the wiki pages for [setting up the development environment](https://github.com/lodr/strongforce/wiki/The-development-environment), passing tests, running grunt and so on.
+In addition, take a look at the wiki pages for [setting up the development environment](https://github.com/delapuente/strongforce/wiki/The-development-environment), passing tests, running grunt and so on.
 
 ## License
 
@@ -64,4 +64,4 @@ MIT. See `LICENSE.txt` in this directory.
 
 A JavaScript library by Salvador de la Puente González.
 
-See the [project homepage](http://lodr.github.io/strongforce).
+See the [project homepage](http://delapuente.github.io/strongforce).

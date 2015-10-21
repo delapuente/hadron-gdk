@@ -14,7 +14,7 @@
     "kit"
   ],
   "license": "MIT",
-  "homepage": "http://lodr.github.io/hadron",
+  "homepage": "http://delapuente.github.io/hadron",
   "ignore": [
     "**/.*",
     "node_modules",
